@@ -5,54 +5,14 @@ from bs4 import BeautifulSoup
 import sqlite3
 import sys
 import re
+import time
+
+# TODO: add timestamps in table columns
 
 BASE_URL = "https://www.pornhub.com"
 headers = {'User-Agent': 'For educational purposes for Large-Scale data-processing practice. Please contact: bitsikokos@uchicago.edu'}
 starting_url = "https://www.pornhub.com/video/random" #"https://www.pornhub.com/view_video.php?viewkey=ph5cdde27cdd47c"
-DB_NAME = 'comments3.db'
-# TODO: find the set of keys 
-MODEL_INFO = {'Gender': None,
- 'Height': None,
- 'Weight': None,
- 'Hair Color': None,
- 'Fake Boobs': None,
- 'Tattoos': None,
- 'Piercings': None,
- 'Relationship status': None,
- 'Interested in': None,
- 'Interests and hobbie': None,
- 'Turn Ons': None,
- 'Profile Views': None,
- 'Video Views': None,
- 'Videos Watched': None,
- 'Birth Place': None,
- 'Ethnicity': None,
- 'Turn Offs': None}
-
-PORNSTAR_INFO = {'Gender': None,
- 'Birth Place': None,
- 'Star Sign': None,
- 'Measurements': None,
- 'Height': None,
- 'Weight': None,
- 'Ethnicity': None,
- 'Background': None,
- 'Hair Color': None,
- 'Eye Color': None,
- 'Fake Boobs': None,
- 'Tattoos': None,
- 'Piercings': None,
- 'Interests and hobbies': None,
- 'Relationship status': None,
- 'Interested in': None,
- 'Hometown': None,
- 'City and Country': None,
- 'Pornstar Profile Views': None,
- 'Career Status': None,
- 'Career Start and End': None,
- 'Profile Views': None,
- 'Videos Watched': None,
- 'Video views': None}
+DB_NAME = 'porn_data.db'
 
 
 def create_database_table():
@@ -76,6 +36,15 @@ def create_database_table():
                         upvotes INTEGER,
                        FOREIGN KEY (view_key) REFERENCES video_info (view_key))''')
     
+    cursor.execute("""CREATE TABLE IF NOT EXISTS creators (
+                      creator_href TEXT PRIMARY KEY,
+                      creator_name TEXT,
+                      creator_type TEXT,
+                      about_info TEXT,
+                      video_count TEXT,
+                      subscribers TEXT,
+                      infos TEXT,
+                      FOREIGN KEY (creator_href) REFERENCES video_info(creator_href))""")
     conn.commit()
     conn.close()
 
@@ -96,7 +65,7 @@ def insert_video(view_key, title, creator_name, creator_href, views, rating, yea
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     cursor.execute(
-        """INSERT INTO video_info 
+        """INSERT OR IGNORE INTO video_info 
            (view_key, title, creator_name, creator_href, views, rating, year_added, categories)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """, 
@@ -105,8 +74,18 @@ def insert_video(view_key, title, creator_name, creator_href, views, rating, yea
     conn.commit()
     conn.close()
 
-def insert_creator():
-    pass
+def insert_creator(creator_href, creator_name, creator_type, about_info, video_count, subscribers, infos):
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute(
+        """
+        INSERT OR IGNORE INTO creators
+        (creator_href, creator_name, creator_type, about_info, video_count, subscribers, infos)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (creator_href, creator_name, creator_type, about_info, video_count, subscribers, str(infos))
+    )
+    conn.commit()
+    conn.close()
 
 def scrape_and_insert_comments(porn_soup, view_key):
     user_data_blocks_list = porn_soup.findAll("div", {"class": "topCommentBlock clearfix"})
@@ -124,11 +103,17 @@ def scrape_and_insert_comments(porn_soup, view_key):
             upvote = upvote_block.find("span").text
             insert_comment(user_href, view_key, comment_text, upvote)
 
-def scrape_and_insert_video_info(porn_soup, view_key):
+def scrape_and_insert_video_and_creator(porn_soup, view_key):
     # scrape insert video info
-    video_title = porn_soup.find("span", {"class":"inlineFree"}).text
+    try:
+        video_title = porn_soup.find("span", {"class":"inlineFree"}).text
+    except AttributeError:
+        video_title = None
     video_views = porn_soup.find('li', {"class":"views"}).span.text
-    video_rating_up = porn_soup.find('li', {"class":"rating up"}).span.text 
+    try:
+        video_rating_up = porn_soup.find('li', {"class":"rating up"}).span.text 
+    except AttributeError:
+        video_rating_up = None
     video_added = porn_soup.find('li', {"class":"added"}).text
     video_categories = [i.text for i in porn_soup.findAll('span', {'class':'crowdTitle'})]
     
@@ -141,46 +126,57 @@ def scrape_and_insert_video_info(porn_soup, view_key):
     creator_type = creator_href.split('/')[1]
     insert_video(view_key, video_title, creator_name, creator_href, video_views, video_rating_up, video_added, str(video_categories))
 
-    # TODO: create creator profile table
+    # scrape and insert creator info
     creator_video_count = porn_soup.find("div", {"class":"userInfoContainer"}).find("span",{"class":"videosCount"}).text
     subscribers_count = porn_soup.find("div", {"class":"userInfoContainer"}).find("span",{"class":"subscribersCount"}).text
     
-    # TODO: video_title needs a try and except
     model_response = requests.get(BASE_URL+creator_href, headers=headers)
     model_soup = BeautifulSoup(model_response.text, "html.parser")
-    if creator_type == 'model':
+    infos = {}
+    try:
         about_info = model_soup.find("div", {"class":"about"}).find("div").text.strip()
-        infos = {k:None for k in MODEL_INFO.keys()}
+    except AttributeError:
+        about_info = None
+
+    if creator_type == 'model':
         for info_tag in model_soup.findAll("div", {"class":"infoPiece"}):
             key = info_tag.find('span').text.strip().rstrip(":")
-            value = info_tag.find("span", {"class":"smallInfo"}).text.strip()    
-            if key in infos:
-                infos[key] = value
-            else:
-                print(f'Missing key: {key}')
+            try:
+                value = info_tag.find("span", {"class":"smallInfo"}).text.strip()
+            except AttributeError:
+                value = None 
+            infos[key] = value  
     elif creator_type == 'pornstar':
-        about_info = model_soup.find("div", {"class":"about"}).find("div").text.strip()
-        # for stars
-        infos = {k: None for k in PORNSTAR_INFO.keys()}
         for info_tag in model_soup.findAll("div", {"class":"infoBlock"}):
             key = info_tag.find('span').text.strip()
-            values = info_tag.find("span", {"class":"smallInfo"}).text.strip()
-            if key in infos:
-                infos[key] = value
-            else:
-                print(f'Missing key: {key}')
-            # sys.exit()
-        # porn_soup.findAll("span", {"class":"smallInfo"})
+            value = info_tag.find("span", {"class":"smallInfo"}).text.strip()
+            infos[key] = value
+    else: # channel
+        pass
+    insert_creator(creator_href, creator_name, creator_type, about_info, creator_video_count, subscribers_count, str(infos))
 
 if __name__ == "__main__":
+    start_time = time.time()
     create_database_table()
     N = 100
     for i in range(N):
         response = requests.get(starting_url, headers=headers)
+        # TODO: if a video is already scraped, double entries appear in the comments table
         video_url = response.url
-        view_key = re.findall( r'viewkey=([a-zA-Z0-9]+)', video_url)[0]
         print(video_url)
+        # TODO: this was implemented assuming that all links are in the form of
+        #       https://www.pornhub.com/view_video.php?viewkey=928509562
+        #       however, there are links (rarely) that are in the form:
+        #       https://www.modelhub.com/video/5e41c74eb8c92
+        # which means that video_url shouold be also included in the table
+        # for now (with the try and except) we are ignoring the modelhub links
+        try:
+            view_key = re.findall( r'viewkey=([a-zA-Z0-9]+)', video_url)[0]
+        except IndexError:
+            continue    
         porn_soup = BeautifulSoup(response.text, "html.parser")
 
-        scrape_and_insert_video_info(porn_soup, view_key)
+        scrape_and_insert_video_and_creator(porn_soup, view_key)
         scrape_and_insert_comments(porn_soup, view_key)
+    end_time = time.time()
+    print(f"Elapsed time: {end_time-start_time} seconds")
