@@ -7,11 +7,9 @@ import sys
 import re
 import time
 
-# TODO: add timestamps in table columns
-
 BASE_URL = "https://www.pornhub.com"
 headers = {'User-Agent': 'For educational purposes for Large-Scale data-processing practice. Please contact: bitsikokos@uchicago.edu'}
-starting_url = "https://www.pornhub.com/video/random" #"https://www.pornhub.com/view_video.php?viewkey=ph5cdde27cdd47c"
+starting_url = "https://www.pornhub.com/video/random"
 DB_NAME = 'porn_data.db'
 
 
@@ -23,17 +21,19 @@ def create_database_table():
                         title TEXT,
                         creator_name TEXT,
                         creator_href TEXT,
-                        views TEXT, 
-                        rating TEXT, 
+                        views INTEGER, 
+                        rating FLOAT, 
                         year_added TEXT,
-                        categories TEXT
+                        categories TEXT,
+                        timestamp TIMESTAMP
                         )""")
 
-    cursor.execute('''CREATE TABLE IF NOT EXISTS comments (
+    cursor.execute('''CREATE TABLE IF NOT EXISTS comments ( 
                         username_href TEXT,
                         view_key TEXT NOT NULL,
                         comment_text TEXT,
                         upvotes INTEGER,
+                        timestamp TIMESTAMP,
                        FOREIGN KEY (view_key) REFERENCES video_info (view_key))''')
     
     cursor.execute("""CREATE TABLE IF NOT EXISTS creators (
@@ -41,48 +41,49 @@ def create_database_table():
                       creator_name TEXT,
                       creator_type TEXT,
                       about_info TEXT,
-                      video_count TEXT,
+                      video_count INTEGER,
                       subscribers TEXT,
                       infos TEXT,
+                      timestamp TIMESTAMP,
                       FOREIGN KEY (creator_href) REFERENCES video_info(creator_href))""")
     conn.commit()
     conn.close()
 
-def insert_comment(username_href, view_key, comment_text, upvotes):
+def insert_comment(username_href, view_key, comment_text, upvotes, timestamp):
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     cursor.execute(
         """INSERT INTO comments 
-           (username_href, view_key, comment_text, upvotes)
-           VALUES (?, ?, ?, ?)
+           (username_href, view_key, comment_text, upvotes, timestamp)
+           VALUES (?, ?, ?, ?, ?)
         """, 
-        (username_href, view_key, comment_text, upvotes)
+        (username_href, view_key, comment_text, upvotes, timestamp)
         )
     conn.commit()
     conn.close()
 
-def insert_video(view_key, title, creator_name, creator_href, views, rating, year_added, categories):
+def insert_video(view_key, title, creator_name, creator_href, views, rating, year_added, categories, timestamp):
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     cursor.execute(
         """INSERT OR IGNORE INTO video_info 
-           (view_key, title, creator_name, creator_href, views, rating, year_added, categories)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+           (view_key, title, creator_name, creator_href, views, rating, year_added, categories, timestamp)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, 
-        (view_key, title, creator_name, creator_href,views, rating, year_added, categories)
+        (view_key, title, creator_name, creator_href,views, rating, year_added, categories, timestamp)
         )
     conn.commit()
     conn.close()
 
-def insert_creator(creator_href, creator_name, creator_type, about_info, video_count, subscribers, infos):
+def insert_creator(creator_href, creator_name, creator_type, about_info, video_count, subscribers, infos, timestamp):
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     cursor.execute(
         """
         INSERT OR IGNORE INTO creators
-        (creator_href, creator_name, creator_type, about_info, video_count, subscribers, infos)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, (creator_href, creator_name, creator_type, about_info, video_count, subscribers, str(infos))
+        (creator_href, creator_name, creator_type, about_info, video_count, subscribers, infos, timestamp)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """, (creator_href, creator_name, creator_type, about_info, video_count, subscribers, str(infos), timestamp)
     )
     conn.commit()
     conn.close()
@@ -100,8 +101,9 @@ def scrape_and_insert_comments(porn_soup, view_key):
             user_href = user_block.find("a").get('href')
             # user_name = user_block.find("a").find("img").get('title')
             comment_text = comment_block.span.text
-            upvote = upvote_block.find("span").text
-            insert_comment(user_href, view_key, comment_text, upvote)
+            upvote = int(upvote_block.find("span").text)
+            timestamp = time.time()
+            insert_comment(user_href, view_key, comment_text, upvote, timestamp)
 
 def scrape_and_insert_video_and_creator(porn_soup, view_key):
     # scrape insert video info
@@ -109,28 +111,73 @@ def scrape_and_insert_video_and_creator(porn_soup, view_key):
         video_title = porn_soup.find("span", {"class":"inlineFree"}).text
     except AttributeError:
         video_title = None
-    video_views = porn_soup.find('li', {"class":"views"}).span.text
+
+    try:
+        video_views = porn_soup.find('li', {"class":"views"}).span.text
+        video_views = int(video_views.replace(',', ''))
+    except AttributeError:
+        video_views = None
+    
     try:
         video_rating_up = porn_soup.find('li', {"class":"rating up"}).span.text 
+        video_rating_up = float(video_rating_up.replace('%', ''))/100
     except AttributeError:
         video_rating_up = None
-    video_added = porn_soup.find('li', {"class":"added"}).text
-    video_categories = [i.text for i in porn_soup.findAll('span', {'class':'crowdTitle'})]
+
+    try:
+        video_added = porn_soup.find('li', {"class":"added"}).text
+    except AttributeError:
+        video_added = None
     
+    try:
+        video_categories = [i.text for i in porn_soup.findAll('span', {'class':'crowdTitle'})]
+    except AttributeError:
+        video_categories = None
+
     if porn_soup.find("a", {"class":"gtm-event-link bolded"}):
-        creator_name =  porn_soup.find("a", {"class":"gtm-event-link bolded"}).text
-        creator_href =  porn_soup.find("a", {"class":"gtm-event-link bolded"})['href']
+        try:
+            creator_name =  porn_soup.find("a", {"class":"gtm-event-link bolded"}).text
+        except AttributeError:
+            creator_name = None
+        try:
+            creator_href =  porn_soup.find("a", {"class":"gtm-event-link bolded"})['href']
+        except AttributeError:
+            creator_href = None
     else:
-        creator_name = porn_soup.find("div", {"class":"userInfoContainer"}).find("a").text
-        creator_href = porn_soup.find("div", {"class":"userInfoContainer"}).find("a").get('href')
-    creator_type = creator_href.split('/')[1]
-    insert_video(view_key, video_title, creator_name, creator_href, video_views, video_rating_up, video_added, str(video_categories))
+        try:
+            creator_name = porn_soup.find("div", {"class":"userInfoContainer"}).find("a").text
+        except AttributeError:
+            creator_name = None
+        try:
+            creator_href = porn_soup.find("div", {"class":"userInfoContainer"}).find("a").get('href')
+        except AttributeError:
+            creator_href = None
+
+    try:
+        creator_type = creator_href.split('/')[1]
+    except AttributeError:
+        creator_type = None
+    
+    timestamp = time.time()
+    insert_video(view_key, video_title, creator_name, creator_href, video_views,
+                 video_rating_up, video_added, str(video_categories), timestamp)
 
     # scrape and insert creator info
-    creator_video_count = porn_soup.find("div", {"class":"userInfoContainer"}).find("span",{"class":"videosCount"}).text
-    subscribers_count = porn_soup.find("div", {"class":"userInfoContainer"}).find("span",{"class":"subscribersCount"}).text
+    try:
+        creator_video_count = porn_soup.find("div", {"class":"userInfoContainer"}).find("span",{"class":"videosCount"}).text
+    except AttributeError:
+        creator_video_count = None
     
-    model_response = requests.get(BASE_URL+creator_href, headers=headers)
+    try: 
+        subscribers_count = porn_soup.find("div", {"class":"userInfoContainer"}).find("span",{"class":"subscribersCount"}).text
+    except AttributeError:
+        subscribers_count = None
+
+    if creator_href:
+        model_response = requests.get(BASE_URL+creator_href, headers=headers)
+    else:
+        return
+
     model_soup = BeautifulSoup(model_response.text, "html.parser")
     infos = {}
     try:
@@ -153,7 +200,8 @@ def scrape_and_insert_video_and_creator(porn_soup, view_key):
             infos[key] = value
     else: # channel
         pass
-    insert_creator(creator_href, creator_name, creator_type, about_info, creator_video_count, subscribers_count, str(infos))
+    timestamp = time.time()
+    insert_creator(creator_href, creator_name, creator_type, about_info, creator_video_count, subscribers_count, str(infos), timestamp)
 
 if __name__ == "__main__":
     start_time = time.time()
