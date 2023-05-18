@@ -1,18 +1,34 @@
-import requests
-import dataset
-import re
-from datetime import datetime
-from bs4 import BeautifulSoup
-from urllib.parse import urljoin, urlparse
+################################################################################
+"""
+Creates the database tables for the pornhub data hosted on an AWS RDS instance.
+
+Uses argpase for number of lambda functions to create and number of videos to scrape.
+--num_lambda default is 10, num_pages default is 10 unless specified.
+
+Calling this script with flag --update will create or update the lambda function.
+
+a command line call of the form:
+python scrape.py --update --num_lambda 10 --num_pages 10
+will create 10 lambda functions and scrape 10 videos per lambda function.
+or
+python scrape.py -l 10 -n 10
+"""
+################################################################################
+
 import boto3
 import json
 import zipfile
-
+import configparser
+import argparse
 
 aws_lambda = boto3.client('lambda', region_name='us-east-1')
 iam_client = boto3.client('iam')
 role = iam_client.get_role(RoleName='LabRole')
 
+config = configparser.ConfigParser()
+
+# Read existing configuration file, or create an empty one if it doesn't exist
+config.read('config.ini')
 
 def update_lammbda():
 
@@ -45,48 +61,6 @@ def update_lammbda():
     lambda_arn = response['FunctionArn']
 
     sfn = boto3.client('stepfunctions', region_name='us-east-1')
-
-    def make_def(lambda_arn):
-        definition = {
-            "Comment": "My State Machine",
-            "StartAt": "Map",
-            "States": {
-                "Map": {
-                    "Type": "Map",
-                    "End": True,
-                    "Iterator": {
-                        "StartAt": "Lambda Invoke",
-                        "States": {
-                            "Lambda Invoke": {
-                                "Type": "Task",
-                                "Resource": "arn:aws:states:::lambda:invoke",
-                                "OutputPath": "$.Payload",
-                                "Parameters": {
-                                    "Payload.$": "$",
-                                    "FunctionName": lambda_arn
-                                    },
-                            "Retry": [
-                                {
-                                "ErrorEquals": [
-                                    "Lambda.ServiceException",
-                                    "Lambda.AWSLambdaException",
-                                    "Lambda.SdkClientException",
-                                    "Lambda.TooManyRequestsException",
-                                    "States.TaskFailed"
-                                    ],
-                                "IntervalSeconds": 2,
-                                "MaxAttempts": 6,
-                                "BackoffRate": 2
-                                }
-                                ],
-                            "End": True
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return definition
         
     sf_def = make_def(lambda_arn)
 
@@ -109,67 +83,99 @@ def update_lammbda():
         )
     print(response)
 
-    return sfn
+def make_def(lambda_arn):
+    definition = {
+        "Comment": "My State Machine",
+        "StartAt": "Map",
+        "States": {
+            "Map": {
+                "Type": "Map",
+                "End": True,
+                "Iterator": {
+                    "StartAt": "Lambda Invoke",
+                    "States": {
+                        "Lambda Invoke": {
+                            "Type": "Task",
+                            "Resource": "arn:aws:states:::lambda:invoke",
+                            "OutputPath": "$.Payload",
+                            "Parameters": {
+                                "Payload.$": "$",
+                                "FunctionName": lambda_arn
+                                },
+                        "Retry": [
+                            {
+                            "ErrorEquals": [
+                                "Lambda.ServiceException",
+                                "Lambda.AWSLambdaException",
+                                "Lambda.SdkClientException",
+                                "Lambda.TooManyRequestsException",
+                                "States.TaskFailed"
+                                ],
+                            "IntervalSeconds": 2,
+                            "MaxAttempts": 6,
+                            "BackoffRate": 2
+                            }
+                            ],
+                        "End": True
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return definition
 
-with open('db_details.txt', 'r') as f:
-    ENDPOINT = f.readline().strip()
-    PORT = f.readline().strip()
-    rdb_name = f.readline().strip()
-    USERNAME = f.readline().strip()
-    PASSWORD = f.readline().strip()
+def read_config():
+    config = configparser.ConfigParser()
+    config.read('db_details.ini')
+    ENDPOINT = config.get('DATABASE', 'ENDPOINT')
+    PORT = config.get('DATABASE', 'PORT')
+    rdb_name = config.get('DATABASE', 'rdb_name')
+    USERNAME = config.get('DATABASE', 'USERNAME')
+    PASSWORD = config.get('DATABASE', 'PASSWORD')
+    return ENDPOINT, PORT, rdb_name, USERNAME, PASSWORD
 
-db_url = "mysql+mysqlconnector://{}:{}@{}:{}/books".format(USERNAME, PASSWORD, ENDPOINT, PORT)
-db = dataset.connect(db_url)
 
-lambda_db_url = "mysql+mysqlconnector://{}:{}@{}:{}/book_info".format(USERNAME, PASSWORD, ENDPOINT, PORT)
+def scrape(num_lambdas=10, num_pages=10):
+    """
+    
+    """
+    ENDPOINT, PORT, rdb_name, USERNAME, PASSWORD = read_config()
 
-full_book_data = []
-full_book_urls = []
-r = None
-base_url = 'http://books.toscrape.com/'
-url = base_url
-while True:
-    try:
-        r = requests.get(url)
-        # break
-    except:
-        continue
-    html_soup = BeautifulSoup(r.text, 'html.parser')
-    book_data, book_urls = scrape_books(html_soup, url)
-    full_book_data.extend(book_data)
-    full_book_urls.extend(book_urls)
-    # Is there a next page?
-    next_a = html_soup.select('li.next > a')
-    if not next_a or not next_a[0].get('href'):
-        break
-    url = urljoin(url, next_a[0].get('href'))
+    db_url = "mysql+mysqlconnector://{}:{}@{}:{}/{}".format(USERNAME, PASSWORD, ENDPOINT, PORT, rdb_name)
 
-print('All done! Now inserting data into db and calling Lambda')
-# invoke 50 async lambda functions to pull book data from each url
-# and insert into db
-num_lambda = 50
-chunks = len(full_book_urls) // num_lambda
+    # Get arn for Step Function state machine
+    sfn = boto3.client('stepfunctions', region_name='us-east-1')
+    response = sfn.list_state_machines()
+    state_machine_arn = [sm['stateMachineArn']
+                            for sm in response['stateMachines'] 
+                            if sm['name'] == 'pornhub_scraper_sm'][0]
 
-# break up urls into chunks of 50
-url_chunks = [full_book_urls[x:x+chunks] for x in range(0, len(full_book_urls), chunks)]
+    # the lambda package to send to the state machine
+    lambda_package = {
+        'db_url': db_url,
+        'num_pages': num_pages,
+    }
 
-# Get arn for Step Function state machine
-response = sfn.list_state_machines()
-state_machine_arn = [sm['stateMachineArn']
-                        for sm in response['stateMachines'] 
-                        if sm['name'] == 'scrape_books_sm'][0]
+    # the number of lambdas to invoke
+    num_lambdas = [lambda_package for i in range(num_lambdas)]
 
-response = sfn.start_execution(
-stateMachineArn=state_machine_arn,
-name='async_test',
-input=json.dumps(url_chunks)
-)
-
-for book in full_book_data:
-    book_id, last_seen = book
-    db['books'].upsert({'book_id': book_id, 'last_seen': last_seen}, ['book_id'])
-
+    response = sfn.start_execution(
+    stateMachineArn=state_machine_arn,
+    name='async_test',
+    input=json.dumps(lambda_package)
+    )
 
 if __name__ == '__main__':
-    sfn = update_lammbda()
+    parser = argparse.ArgumentParser(description="Python script that accepts command line arguments.")
+    parser.add_argument('-l', '--num_lambdas', default=10, type=int, help="Number of lambdas")
+    parser.add_argument('-n', '--num_pages', default=10, type=int, help="Number of pages")
+    parser.add_argument('--update', action='store_true', help="Flag to trigger lambda update")
+
+    args = parser.parse_args()
+    
+    if args.update:
+        update_lammbda()
+
+    scrape(args.num_lambdas, args.num_pages)
 

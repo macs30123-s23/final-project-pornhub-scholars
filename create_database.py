@@ -16,18 +16,38 @@ from botocore.exceptions import ClientError
 import mysql.connector
 import pandas as pd
 from sqlalchemy import create_engine
+import configparser
+
+def write_config(ENDPOINT, PORT, rdb_name, USERNAME, PASSWORD):
+    config = configparser.ConfigParser()
+    config["DATABASE"] = {
+        'ENDPOINT': ENDPOINT,
+        'PORT': PORT,
+        'rdb_name': rdb_name,
+        'USERNAME': USERNAME,
+        'PASSWORD': PASSWORD
+    }
+
+    with open('db_details.ini', 'w') as configfile:
+        config.write(configfile)
+
+def read_config():
+    config = configparser.ConfigParser()
+    config.read('db_details.ini')
+    ENDPOINT = config.get('DATABASE', 'ENDPOINT')
+    PORT = config.get('DATABASE', 'PORT')
+    rdb_name = config.get('DATABASE', 'rdb_name')
+    USERNAME = config.get('DATABASE', 'USERNAME')
+    PASSWORD = config.get('DATABASE', 'PASSWORD')
+    return ENDPOINT, PORT, rdb_name, USERNAME, PASSWORD
+
 
 def download_database(ENDPOINT, PORT, rdb_name, USERNAME, PASSWORD):
     """
     Download the database as a parquet file.
     """
 
-    with open('db_details.txt', 'r') as f:
-        ENDPOINT = f.readline().strip()
-        PORT = f.readline().strip()
-        rdb_name = f.readline().strip()
-        USERNAME = f.readline().strip()
-        PASSWORD = f.readline().strip()
+    ENDPOINT, PORT, rdb_name, USERNAME, PASSWORD = read_config()
 
     engine = create_engine(f'mysql+mysqlconnector://{USERNAME}:{PASSWORD}@{ENDPOINT}:{PORT}/{rdb_name}')
     
@@ -40,6 +60,7 @@ def create_aws_rdb():
     """
     Initialize the actual aws rdb instance.
     """
+    print("Creating AWS RDS Instance...")
     rdb_name = 'porn_data'
 
     rds = boto3.client('rds', region_name='us-east-1')
@@ -55,6 +76,7 @@ def create_aws_rdb():
             AllocatedStorage=5
         )
         # Wait until DB is available to continue
+        print("Waiting for database to be available...")
         rds.get_waiter('db_instance_available').wait(DBInstanceIdentifier='relational-db')
     except ClientError as e:
         if e.response['Error']['Code'] == 'DBInstanceAlreadyExists':
@@ -94,14 +116,18 @@ def create_aws_rdb():
             print("Permissions already adjusted.")
         else:
             print(e)
-
-    with open('db_details.txt', 'w') as f:
-        f.write(f'{ENDPOINT}\n{PORT}\n{rdb_name}\n{USERNAME}\n{PASSWORD}')
+    print("Permissions adjusted.")
+    print("Database is ready to be used.")
+    print("Writing database details to config file...")
+    write_config(ENDPOINT, PORT, rdb_name, USERNAME, PASSWORD)
 
     return ENDPOINT, PORT, rdb_name, USERNAME, PASSWORD
 
 def create_database_table(ENDPOINT, PORT, rdb_name, USERNAME, PASSWORD):
-
+    """
+    Create the database tables.
+    """
+    print("Creating database tables...")
     conn =  mysql.connector.connect(host=ENDPOINT,
                                 user=USERNAME,
                                 passwd=PASSWORD, 
@@ -111,7 +137,7 @@ def create_database_table(ENDPOINT, PORT, rdb_name, USERNAME, PASSWORD):
 
     cursor.execute(
         """CREATE TABLE IF NOT EXISTS video_info (
-                        view_key TEXT PRIMARY KEY,
+                        view_key VARCHAR(255) PRIMARY KEY,
                         title TEXT,
                         creator_name TEXT,
                         creator_href TEXT,
@@ -126,7 +152,7 @@ def create_database_table(ENDPOINT, PORT, rdb_name, USERNAME, PASSWORD):
     cursor.execute(
         """CREATE TABLE IF NOT EXISTS comments ( 
                         username_href TEXT,
-                        view_key TEXT NOT NULL,
+                        view_key VARCHAR(255) NOT NULL,
                         comment_text TEXT,
                         upvotes INTEGER,
                         timestamp TIMESTAMP,
@@ -135,7 +161,7 @@ def create_database_table(ENDPOINT, PORT, rdb_name, USERNAME, PASSWORD):
 
     cursor.execute(
         """CREATE TABLE IF NOT EXISTS creators (
-                    creator_href TEXT PRIMARY KEY,
+                    creator_href VARCHAR(255) PRIMARY KEY,
                     creator_name TEXT,
                     creator_type TEXT,
                     about_info TEXT,
@@ -147,11 +173,13 @@ def create_database_table(ENDPOINT, PORT, rdb_name, USERNAME, PASSWORD):
     )
     conn.commit()
     conn.close()
+    print("Tables created successfully!")
 
 def delete_database():
     """
     Delete the database.
     """
+    print("Deleting database...")
     rds = boto3.client('rds', region_name='us-east-1')
     response = rds.delete_db_instance(DBInstanceIdentifier='relational-db',
                     SkipFinalSnapshot=True
