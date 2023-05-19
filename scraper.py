@@ -172,7 +172,8 @@ def scrape_and_insert_video_and_creator(porn_soup, view_key):
         subscribers_count = porn_soup.find("div", {"class":"userInfoContainer"}).find("span",{"class":"subscribersCount"}).text
     except AttributeError:
         subscribers_count = None
-
+    
+    # TODO: this does not scrape models or pornstars!
     if creator_href:
         model_response = requests.get(BASE_URL+creator_href, headers=headers)
     else:
