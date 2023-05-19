@@ -34,6 +34,11 @@ config = configparser.ConfigParser()
 config.read('config.ini')
 
 def update_lambda():
+    # If zip file does not exist at current directory, download it from S3
+    if not os.path.exists('lambda_deployment.zip'):
+        print("Downloading zip file from S3...")
+        s3.download_file('final-project-pornhub-macss', 'lambda_deployment.zip', 'lambda_deployment.zip')
+
     # Temporary directory for holding the unzipped files
     temp_dir = 'temp_dir'
     zip_file_name = 'lambda_deployment.zip'
