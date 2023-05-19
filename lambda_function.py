@@ -126,6 +126,21 @@ def scrape_and_insert_video_and_creator(porn_soup, view_key):
             )
         except AttributeError:
             creator_href = None
+    
+    if creator_href:
+        model_response = requests.get(BASE_URL + creator_href, headers=headers)
+    else:
+        try:
+            creator_href = porn_soup.find("div", {"class": "pornstarNameIcon"}).find("a")['href']
+        except AttributeError:
+            creator_href = None
+        
+        if creator_href:
+            model_response = requests.get(BASE_URL + creator_href, headers=headers)
+        else:
+            print("Creator href error")
+            return
+    
 
     try:
         creator_type = creator_href.split("/")[1]
@@ -163,15 +178,6 @@ def scrape_and_insert_video_and_creator(porn_soup, view_key):
         )
     except AttributeError:
         subscribers_count = None
-
-    if creator_href:
-        model_response = requests.get(BASE_URL + creator_href, headers=headers)
-    else:
-        creator_href = porn_soup.find("div", {"class": "pornstarNameIcon"}).find("a")['href']
-        if not creator_href:
-            print("Creator href error")
-            return
-        model_response = requests.get(BASE_URL+creator_href, headers=headers)
 
     model_soup = BeautifulSoup(model_response.text, "html.parser")
     infos = {}
