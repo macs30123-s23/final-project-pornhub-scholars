@@ -15,7 +15,9 @@ db = None
 comments_table = None
 video_info_table = None
 creators_table = None
-
+BASE_URL = None
+headers = None
+starting_url = None
 
 def upsert_comment(username_href, view_key, comment_text, upvotes, timestamp):
     data = dict(username_href=username_href, view_key=view_key, comment_text=comment_text, upvotes=upvotes, timestamp=timestamp)
@@ -206,20 +208,16 @@ def lambda_handler(event, context):
     """
     Scrape book info from a list of urls and store in database
     """
-
-    # Scraping elements
-    BASE_URL = "https://www.pornhub.com"
-    headers = {
-        "User-Agent": "For educational purposes for Large-Scale data-processing practice. Please contact: bitsikokos@uchicago.edu"
-    }
-    starting_url = "https://www.pornhub.com/video/random"
-
     # Use global keyword to reference the global variables
     global db_url
     global db
     global comments_table
     global video_info_table
     global creators_table
+    global BASE_URL
+    global headers
+    global starting_url
+
 
     # database elements
     db_url = event["db_url"]
@@ -228,8 +226,15 @@ def lambda_handler(event, context):
     video_info_table = db['video_info']
     creators_table = db['creators']
 
+    # Scraping elements
+    BASE_URL = "https://www.pornhub.com"
+    headers = {
+        "User-Agent": "For educational purposes for Large-Scale data-processing practice. Please contact: bitsikokos@uchicago.edu"
+    }
+    starting_url = "https://www.pornhub.com/video/random"
+
     # how many videos to scrape
-    N = event["N"]
+    N = event["num_pages"]
 
     start_time = time.time()
 

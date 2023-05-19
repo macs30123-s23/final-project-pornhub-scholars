@@ -136,17 +136,29 @@ def create_database_table(ENDPOINT, PORT, rdb_name, USERNAME, PASSWORD):
     cursor = conn.cursor(buffered=True)
 
     cursor.execute(
+        """CREATE TABLE IF NOT EXISTS creators (
+                    creator_href VARCHAR(255) PRIMARY KEY,
+                    creator_name TEXT,
+                    creator_type TEXT,
+                    about_info TEXT,
+                    video_count INTEGER,
+                    subscribers TEXT,
+                    infos TEXT,
+                    timestamp TIMESTAMP)"""
+    )
+
+    cursor.execute(
         """CREATE TABLE IF NOT EXISTS video_info (
                         view_key VARCHAR(255) PRIMARY KEY,
                         title TEXT,
                         creator_name TEXT,
-                        creator_href TEXT,
+                        creator_href VARCHAR(255),
                         views INTEGER, 
                         rating FLOAT, 
                         year_added TEXT,
                         categories TEXT,
-                        timestamp TIMESTAMP
-                        )"""
+                        timestamp TIMESTAMP,
+                        FOREIGN KEY (creator_href) REFERENCES creators(creator_href))"""
     )
 
     cursor.execute(
@@ -159,18 +171,6 @@ def create_database_table(ENDPOINT, PORT, rdb_name, USERNAME, PASSWORD):
                         FOREIGN KEY (view_key) REFERENCES video_info (view_key))"""
     )
 
-    cursor.execute(
-        """CREATE TABLE IF NOT EXISTS creators (
-                    creator_href VARCHAR(255) PRIMARY KEY,
-                    creator_name TEXT,
-                    creator_type TEXT,
-                    about_info TEXT,
-                    video_count INTEGER,
-                    subscribers TEXT,
-                    infos TEXT,
-                    timestamp TIMESTAMP,
-                    FOREIGN KEY (creator_href) REFERENCES video_info(creator_href))"""
-    )
     conn.commit()
     conn.close()
     print("Tables created successfully!")
