@@ -1,12 +1,29 @@
+#!/bin/bash
+
 # Shell script to run the scraper from zero state
 # FROM THE TOP, RUN IT BACK
 
-#! WARNINGS BEFORE RUNNING
-#! YOU MUST HAVE YOUR CREDENTIALS SETUP FROM AWS CLI
-#! Needed files, check that the .zip file and lambda_function.py are in the root directory
-#! You must have the following packages installed: boto3, requests, bs4, pandas, numpy, json,
-#!  zipfile, configparser, argparse, os, argparse, os, shutil
+# If you do not have micromamba python environment manager installed,
+# add the --mamba flag from the command below
 
-# initialize the database
-python create_database.py --create
-python scrape.py -l 1000 -n 10 --update
+# install requirements
+if [[ $* == *--mamba* ]]
+then
+    echo "Installing micromamba..."
+    curl micro.mamba.pm/install.sh | bash
+fi
+
+# create the environment
+echo "Creating the environment..."
+mamba env create -f environment.yml
+
+# # initialize the database
+mamba run -n prn python create_database.py --create
+mamba run -n prn python scrape.py -l 1000 -n 20 --update
+
+# Now you have a bunch of data
+# Time to analyze it
+
+# When you're done though remember to shut down the RDB so you're not losing money
+# run the following command to shut down the RDB
+# mamba run -n prn python create_database.py --close
