@@ -259,6 +259,10 @@ def lambda_handler(event, context):
         scrape_and_insert_comments(porn_soup, view_key)
     end_time = time.time()
     print(f"Elapsed time: {end_time-start_time} seconds")
+
+    # close database connection
+    db.close()
+
     return {
         "statusCode": 200,
         "body": json.dumps(f"Elapsed time: {end_time-start_time} seconds"),

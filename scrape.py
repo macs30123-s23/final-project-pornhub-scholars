@@ -204,13 +204,13 @@ def scrape(num_lambdas=10, num_pages=10):
     }
 
     # the number of lambdas to invoke
-    num_lambdas = [lambda_package for i in range(num_lambdas + 1)]
-    print("Invoking {} lambdas...".format(len(num_lambdas)))
+    lambda_payload = [lambda_package for i in range(num_lambdas)]
+    print("Invoking {} lambdas...".format(len(lambda_payload)))
 
     response = sfn.start_execution(
     stateMachineArn=state_machine_arn,
     name='async_test',
-    input=json.dumps(lambda_package)
+    input=json.dumps(lambda_payload)
     )
 
 if __name__ == '__main__':
