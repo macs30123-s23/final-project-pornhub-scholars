@@ -167,7 +167,11 @@ def scrape_and_insert_video_and_creator(porn_soup, view_key):
     if creator_href:
         model_response = requests.get(BASE_URL + creator_href, headers=headers)
     else:
-        return
+        creator_href = porn_soup.find("div", {"class": "pornstarNameIcon"}).find("a")['href']
+        if not creator_href:
+            print("Creator href error")
+            return
+        model_response = requests.get(BASE_URL+creator_href, headers=headers)
 
     model_soup = BeautifulSoup(model_response.text, "html.parser")
     infos = {}
