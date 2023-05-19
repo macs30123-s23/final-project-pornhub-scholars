@@ -160,4 +160,4 @@ cython_debug/
 #.idea/
 
 # Project specific
-lambda_deployment.zip
+*.zip
