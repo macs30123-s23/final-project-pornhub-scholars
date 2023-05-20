@@ -12,7 +12,7 @@ Calling this script with flag --download will download the database to the local
 import argparse
 import boto3
 import json
-from botocore.exceptions import ClientError
+from botocore.exceptions import BotoCoreError, ClientError
 import mysql.connector
 import pandas as pd
 from sqlalchemy import create_engine
@@ -64,6 +64,39 @@ def download_database():
         df = pd.read_sql_query(f"SELECT * FROM {table}", engine)
         df.to_parquet(f"./tables/{table}.parquet")
 
+def create_s3_bucket():
+    """
+    Creates the S3 Bucket for the zip file for lambda upload the zip
+    """
+    s3_client = boto3.client('s3')
+    iam_client = boto3.client('iam')
+    role = iam_client.get_role(RoleName='LabRole')
+
+
+    bucket_name = 'final-project-pornhub-macss'
+    file_name = 'lambda_deployment.zip'
+    key_name = 'lambda_deployment.zip'
+
+    try:
+        # Create the S3 bucket
+        s3_client.create_bucket(Bucket=bucket_name)
+
+        # Upload the file to S3
+        s3_client.upload_file(file_name, bucket_name, key_name)
+
+        # Set the object ACL as public read and write
+        s3_client.put_object_acl(
+            ACL='public-read-write',
+            Bucket=bucket_name,
+            Key=key_name
+        )
+        print(f"File {file_name} uploaded to bucket {bucket_name} and set as public read and write.")
+        
+    except BotoCoreError as e:
+        print(e)
+    except ClientError as e:
+        print(e)
+
 
 def create_aws_rdb():
     """
@@ -80,9 +113,9 @@ def create_aws_rdb():
             DBName=rdb_name,
             MasterUsername="username",
             MasterUserPassword="password",
-            DBInstanceClass="db.t2.micro",
+            DBInstanceClass="db.t3.medium",
             Engine="mysql",
-            AllocatedStorage=5,
+            AllocatedStorage=10,
         )
         # Wait until DB is available to continue
         print("Waiting for database to be available...")
@@ -226,6 +259,7 @@ if __name__ == "__main__":
     if args.create:
         ENDPOINT, PORT, rdb_name, USERNAME, PASSWORD = create_aws_rdb()
         create_database_table(ENDPOINT, PORT, rdb_name, USERNAME, PASSWORD)
+        create_s3_bucket()
     elif args.close:
         delete_database()
     elif args.download:

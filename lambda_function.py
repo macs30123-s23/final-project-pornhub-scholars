@@ -147,19 +147,6 @@ def scrape_and_insert_video_and_creator(porn_soup, view_key):
     except AttributeError:
         creator_type = None
 
-    timestamp = time.time()
-    upsert_video(
-        view_key,
-        video_title,
-        creator_name,
-        creator_href,
-        video_views,
-        video_rating_up,
-        video_added,
-        str(video_categories),
-        timestamp,
-    )
-
     # scrape and insert creator info
     try:
         creator_video_count = (
@@ -201,6 +188,7 @@ def scrape_and_insert_video_and_creator(porn_soup, view_key):
             infos[key] = value
     else:  # channel
         pass
+    
     timestamp = time.time()
     upsert_creator(
         creator_href,
@@ -213,72 +201,81 @@ def scrape_and_insert_video_and_creator(porn_soup, view_key):
         timestamp,
     )
 
+    timestamp = time.time()
+    upsert_video(
+        view_key,
+        video_title,
+        creator_name,
+        creator_href,
+        video_views,
+        video_rating_up,
+        video_added,
+        str(video_categories),
+        timestamp,
+    )
+
+
 
 def lambda_handler(event, context):
     """
     PornHub scraper lambda function.
     """
-    if 'Records' in event:
-        record = event['Records'][0]
+    # database elements
+    db = None
+    try:
+        if 'Records' in event:
+            record = event['Records'][0]
 
-        data = json.loads(record['body'])
+            data = json.loads(record['body'])
 
-        # Use global keyword to reference the global variables
-        global db_url
-        global db
-        global comments_table
-        global video_info_table
-        global creators_table
-        global BASE_URL
-        global headers
-        global starting_url
+            # Use global keyword to reference the global variables
+            global db_url
+            global comments_table
+            global video_info_table
+            global creators_table
+            global BASE_URL
+            global headers
+            global starting_url
 
+            db_url = data["db_url"]
+            db = dataset.connect(db_url)
+            comments_table = db['comments']
+            video_info_table = db['video_info']
+            creators_table = db['creators']
 
-        # database elements
-        db_url = data["db_url"]
-        db = dataset.connect(db_url)
-        comments_table = db['comments']
-        video_info_table = db['video_info']
-        creators_table = db['creators']
+            # Scraping elements
+            BASE_URL = "https://www.pornhub.com"
+            headers = {
+                "User-Agent": "For educational purposes for Large-Scale data-processing practice. Please contact: bitsikokos@uchicago.edu"
+            }
+            starting_url = "https://www.pornhub.com/video/random"
 
-        # Scraping elements
-        BASE_URL = "https://www.pornhub.com"
-        headers = {
-            "User-Agent": "For educational purposes for Large-Scale data-processing practice. Please contact: bitsikokos@uchicago.edu"
-        }
-        starting_url = "https://www.pornhub.com/video/random"
+            # how many videos to scrape
+            N = data["num_pages"]
 
-        # how many videos to scrape
-        N = data["num_pages"]
+            start_time = time.time()
 
-        start_time = time.time()
+            for i in range(N):
+                response = requests.get(starting_url, headers=headers)
+                video_url = response.url
+                print(video_url)
+                try:
+                    view_key = re.findall(r"viewkey=([a-zA-Z0-9]+)", video_url)[0]
+                except IndexError:
+                    continue
+                porn_soup = BeautifulSoup(response.text, "html.parser")
 
-        for i in range(N):
-            response = requests.get(starting_url, headers=headers)
-            # TODO: if a video is already scraped, double entries appear in the comments table
-            video_url = response.url
-            print(video_url)
-            # TODO: this was implemented assuming that all links are in the form of
-            #       https://www.pornhub.com/view_video.php?viewkey=928509562
-            #       however, there are links (rarely) that are in the form:
-            #       https://www.modelhub.com/video/5e41c74eb8c92
-            # which means that video_url shouold be also included in the table
-            # for now (with the try and except) we are ignoring the modelhub links
-            try:
-                view_key = re.findall(r"viewkey=([a-zA-Z0-9]+)", video_url)[0]
-            except IndexError:
-                continue
-            porn_soup = BeautifulSoup(response.text, "html.parser")
+                scrape_and_insert_video_and_creator(porn_soup, view_key)
+                scrape_and_insert_comments(porn_soup, view_key)
+            end_time = time.time()
+            print(f"Elapsed time: {end_time-start_time} seconds")
 
-            scrape_and_insert_video_and_creator(porn_soup, view_key)
-            scrape_and_insert_comments(porn_soup, view_key)
-        end_time = time.time()
-        print(f"Elapsed time: {end_time-start_time} seconds")
-
-        # close database connection
-        db.close()
-
-        return {
-            "statusCode": 200,
-            "body": json.dumps(f"Elapsed time: {end_time-start_time} seconds"),
-        }
+            return {
+                "statusCode": 200,
+                "body": json.dumps(f"Elapsed time: {end_time-start_time} seconds"),
+            }
+    finally:
+        if db:
+            # close and dispose database connection
+            db.engine.dispose()
+            print("Database connection closed and disposed.")
