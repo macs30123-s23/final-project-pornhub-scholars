@@ -22,18 +22,32 @@ import configparser
 import argparse
 import os
 import shutil
+from tqdm import tqdm
+
 
 aws_lambda = boto3.client('lambda', region_name='us-east-1')
 iam_client = boto3.client('iam')
+sqs = boto3.client('sqs', region_name='us-east-1')
 s3 = boto3.client('s3')
 role = iam_client.get_role(RoleName='LabRole')
 
 config = configparser.ConfigParser()
+config.read('db_details.ini')
 
-# Read existing configuration file, or create an empty one if it doesn't exist
-config.read('config.ini')
+def send_scrape(lambda_package, queue_url):
+    """
+    Submits a package for lambda to scrape to the SQS queue
+    """
+
+    response = sqs.send_message(
+        QueueUrl=queue_url,
+        MessageBody=json.dumps(lambda_package),
+    )
 
 def update_lambda():
+    """
+    Lambda function deployment pipeline
+    """
     # If zip file does not exist at current directory, download it from S3
     if not os.path.exists('lambda_deployment.zip'):
         print("Downloading zip file from S3...")
@@ -79,7 +93,6 @@ def update_lambda():
 
     try:
         # If function hasn't yet been created, create it
-        print("Function doesn't exist, creating...")
         response = aws_lambda.create_function(
             FunctionName='pornhub_scraper',
             Runtime='python3.9',
@@ -101,100 +114,72 @@ def update_lambda():
             S3Key=zip_file_name
             )
 
-    lambda_arn = response['FunctionArn']
-
-    sfn = boto3.client('stepfunctions', region_name='us-east-1')
-        
-    sf_def = make_def(lambda_arn)
-
-    print("Creating/updating state machine...")
+    # Create SQS Queue
     try:
-        response = sfn.create_state_machine(
-            name='pornhub_scraper_sm',
-            definition=json.dumps(sf_def),
-            roleArn=role['Role']['Arn'],
-            type='EXPRESS'
+        queue_url = sqs.create_queue(QueueName='scraper_queue')['QueueUrl']
+    except sqs.exceptions.QueueNameExists:
+        queue_url = [url
+                    for url in sqs.list_queues()['QueueUrls']
+                    if 'scraper_queue' in url][0]
+    
+    # Write queue url to config file
+    config['QUEUE'] = {
+        'queue_url': queue_url
+    }
+    # write the changes back to the file
+    with open('db_details.ini', 'w') as configfile:
+        config.write(configfile)
+
+    # Set visibility timeout to 5 minutes (300 seconds) to be longer than the lambda timeout
+    sqs.set_queue_attributes(
+    QueueUrl=queue_url,
+    Attributes={'VisibilityTimeout': '300'} 
+    )
+
+    sqs_info = sqs.get_queue_attributes(QueueUrl=queue_url,
+                                        AttributeNames=['QueueArn'])
+    sqs_arn = sqs_info['Attributes']['QueueArn']
+
+    # Trigger Lambda Function when new messages enter SQS Queue
+    try:
+        response = aws_lambda.create_event_source_mapping(
+            EventSourceArn=sqs_arn,
+            FunctionName='pornhub_scraper',
+            Enabled=True,
+            BatchSize=1,
         )
-    except sfn.exceptions.StateMachineAlreadyExists:
-        response = sfn.list_state_machines()
-        state_machine_arn = [sm['stateMachineArn'] 
-                                for sm in response['stateMachines'] 
-                                if sm['name'] == 'pornhub_scraper_sm'][0]
-        response = sfn.update_state_machine(
-            stateMachineArn=state_machine_arn,
-            definition=json.dumps(sf_def),
-            roleArn=role['Role']['Arn']
+    except aws_lambda.exceptions.ResourceConflictException:
+        es_id = aws_lambda.list_event_source_mappings(
+            EventSourceArn=sqs_arn,
+            FunctionName='pornhub_scraper'
+        )['EventSourceMappings'][0]['UUID']
+        
+        response = aws_lambda.update_event_source_mapping(
+            UUID=es_id,
+            FunctionName='pornhub_scraper',
+            Enabled=True,
+            BatchSize=1,
         )
 
-def make_def(lambda_arn):
-    definition = {
-        "Comment": "My State Machine",
-        "StartAt": "Map",
-        "States": {
-            "Map": {
-                "Type": "Map",
-                "End": True,
-                "Iterator": {
-                    "StartAt": "Lambda Invoke",
-                    "States": {
-                        "Lambda Invoke": {
-                            "Type": "Task",
-                            "Resource": "arn:aws:states:::lambda:invoke",
-                            "OutputPath": "$.Payload",
-                            "Parameters": {
-                                "Payload.$": "$",
-                                "FunctionName": lambda_arn
-                                },
-                        "Retry": [
-                            {
-                            "ErrorEquals": [
-                                "Lambda.ServiceException",
-                                "Lambda.AWSLambdaException",
-                                "Lambda.SdkClientException",
-                                "Lambda.TooManyRequestsException",
-                                "States.TaskFailed"
-                                ],
-                            "IntervalSeconds": 2,
-                            "MaxAttempts": 6,
-                            "BackoffRate": 2
-                            }
-                            ],
-                        "End": True
-                        }
-                    }
-                }
-            }
-        }
-    }
-    return definition
 
 def read_config():
     print("Reading config file...")
-    config = configparser.ConfigParser()
-    config.read('db_details.ini')
     ENDPOINT = config.get('DATABASE', 'ENDPOINT')
     PORT = config.get('DATABASE', 'PORT')
     rdb_name = config.get('DATABASE', 'rdb_name')
     USERNAME = config.get('DATABASE', 'USERNAME')
     PASSWORD = config.get('DATABASE', 'PASSWORD')
-    return ENDPOINT, PORT, rdb_name, USERNAME, PASSWORD
+    sqs_url = config.get('QUEUE', 'queue_url')
+    return ENDPOINT, PORT, rdb_name, USERNAME, PASSWORD, sqs_url
 
 def scrape(num_lambdas=10, num_pages=10):
     """
     
     """
-    ENDPOINT, PORT, rdb_name, USERNAME, PASSWORD = read_config()
+    ENDPOINT, PORT, rdb_name, USERNAME, PASSWORD, sqs_url = read_config()
 
     db_url = "mysql+mysqlconnector://{}:{}@{}:{}/{}".format(USERNAME, PASSWORD, ENDPOINT, PORT, rdb_name)
     print("Using database url: {}".format(db_url))
-
-    # Get arn for Step Function state machine
-    sfn = boto3.client('stepfunctions', region_name='us-east-1')
-    response = sfn.list_state_machines()
-    state_machine_arn = [sm['stateMachineArn']
-                            for sm in response['stateMachines'] 
-                            if sm['name'] == 'pornhub_scraper_sm'][0]
-    print("Using state machine arn: {}".format(state_machine_arn))
 
     # the lambda package to send to the state machine
     print("Creating lambda package...")
@@ -205,13 +190,11 @@ def scrape(num_lambdas=10, num_pages=10):
 
     # the number of lambdas to invoke
     lambda_payload = [lambda_package for i in range(num_lambdas)]
-    print("Invoking {} lambdas...".format(len(lambda_payload)))
 
-    response = sfn.start_execution(
-    stateMachineArn=state_machine_arn,
-    name='async_test',
-    input=json.dumps(lambda_payload)
-    )
+    print("Invoking {} lambdas...".format(len(lambda_payload)))
+    for payload in tqdm(lambda_payload):
+        send_scrape(payload, sqs_url)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Python script that accepts command line arguments.")
@@ -225,4 +208,3 @@ if __name__ == '__main__':
         update_lambda()
 
     scrape(args.num_lambdas, args.num_pages)
-

@@ -22,6 +22,7 @@ import os
 
 def write_config(ENDPOINT, PORT, rdb_name, USERNAME, PASSWORD):
     config = configparser.ConfigParser()
+    config.read('db_details.ini')
     config["DATABASE"] = {
         "ENDPOINT": ENDPOINT,
         "PORT": PORT,

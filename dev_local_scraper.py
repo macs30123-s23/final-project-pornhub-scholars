@@ -1,3 +1,21 @@
+################################################################################
+"""
+THIS IS A PURELY LOCAL NON PARALLELIZED VERSION OF THE SCRAPER. IT IS USED FOR
+DEBUGGING PURPOSES. IT IS NOT USED IN THE FINAL VERSION OF THE SCRAPER.
+
+This script scrapes the pornhub website and stores the data in a local database.
+The database is created in the same directory as the script and is called
+porn_data_href_error_debug.db
+
+The script is called from the command line as:
+python dev_local_scraper.py
+
+This is a development product and is used for testing and debugging purposes. We
+keep it here so that local testing can be done to inform the development of the 
+lambda function. 
+"""
+################################################################################
+
 import pickle
 import requests
 import pandas as pd
