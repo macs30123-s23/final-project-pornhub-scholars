@@ -1,3 +1,22 @@
+################################################################################
+"""
+THIS IS A PURELY LOCAL NON PARALLELIZED VERSION OF THE SCRAPER. IT IS USED FOR
+DEBUGGING PURPOSES. IT IS NOT USED IN THE FINAL VERSION OF THE SCRAPER.
+
+This script scrapes the pornhub website and stores the data in a local database.
+The database is created in the same directory as the script and is called
+porn_data_href_error_debug.db
+
+The script is called from the command line as:
+python dev_local_scraper.py
+
+This is a development product and is used for testing and debugging purposes. We
+keep it here so that local testing can be done to inform the development of the 
+lambda function. 
+"""
+################################################################################
+
+import pickle
 import requests
 import pandas as pd
 import numpy as np
@@ -10,7 +29,7 @@ import time
 BASE_URL = "https://www.pornhub.com"
 headers = {'User-Agent': 'For educational purposes for Large-Scale data-processing practice. Please contact: bitsikokos@uchicago.edu'}
 starting_url = "https://www.pornhub.com/video/random"
-DB_NAME = 'porn_data.db'
+DB_NAME = 'porn_data_href_error_debug.db'
 
 
 def create_database_table():
@@ -172,11 +191,16 @@ def scrape_and_insert_video_and_creator(porn_soup, view_key):
         subscribers_count = porn_soup.find("div", {"class":"userInfoContainer"}).find("span",{"class":"subscribersCount"}).text
     except AttributeError:
         subscribers_count = None
-
+    
+    # TODO: this does not scrape models or pornstars!
     if creator_href:
         model_response = requests.get(BASE_URL+creator_href, headers=headers)
     else:
-        return
+        creator_href = porn_soup.find("div", {"class": "pornstarNameIcon"}).find("a")['href']
+        if not creator_href:
+            print("creator href error")
+            return
+        model_response = requests.get(BASE_URL+creator_href, headers=headers)
 
     model_soup = BeautifulSoup(model_response.text, "html.parser")
     infos = {}
@@ -206,7 +230,7 @@ def scrape_and_insert_video_and_creator(porn_soup, view_key):
 if __name__ == "__main__":
     start_time = time.time()
     create_database_table()
-    N = 100
+    N = 5
     for i in range(N):
         response = requests.get(starting_url, headers=headers)
         # TODO: if a video is already scraped, double entries appear in the comments table

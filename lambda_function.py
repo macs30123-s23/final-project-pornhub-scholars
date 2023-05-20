@@ -7,20 +7,17 @@ from bs4 import BeautifulSoup
 import json
 import sys
 import time
+import os
 
-
-BASE_URL = "https://www.pornhub.com"
-headers = {
-    "User-Agent": "For educational purposes for Large-Scale data-processing practice. Please contact: bitsikokos@uchicago.edu"
-}
-starting_url = "https://www.pornhub.com/video/random"
-DB_NAME = "porn_data"
-db = dataset.connect(f"sqlite:///{DB_NAME}")
-
-comments_table = db['comments']
-video_info_table = db['video_info']
-creators_table = db['creators']
-
+# Global variables
+db_url = None
+db = None
+comments_table = None
+video_info_table = None
+creators_table = None
+BASE_URL = None
+headers = None
+starting_url = None
 
 def upsert_comment(username_href, view_key, comment_text, upvotes, timestamp):
     data = dict(username_href=username_href, view_key=view_key, comment_text=comment_text, upvotes=upvotes, timestamp=timestamp)
@@ -129,6 +126,21 @@ def scrape_and_insert_video_and_creator(porn_soup, view_key):
             )
         except AttributeError:
             creator_href = None
+    
+    if creator_href:
+        model_response = requests.get(BASE_URL + creator_href, headers=headers)
+    else:
+        try:
+            creator_href = porn_soup.find("div", {"class": "pornstarNameIcon"}).find("a")['href']
+        except AttributeError:
+            creator_href = None
+        
+        if creator_href:
+            model_response = requests.get(BASE_URL + creator_href, headers=headers)
+        else:
+            print("Creator href error")
+            return
+    
 
     try:
         creator_type = creator_href.split("/")[1]
@@ -166,11 +178,6 @@ def scrape_and_insert_video_and_creator(porn_soup, view_key):
         )
     except AttributeError:
         subscribers_count = None
-
-    if creator_href:
-        model_response = requests.get(BASE_URL + creator_href, headers=headers)
-    else:
-        return
 
     model_soup = BeautifulSoup(model_response.text, "html.parser")
     infos = {}
@@ -211,11 +218,36 @@ def lambda_handler(event, context):
     """
     Scrape book info from a list of urls and store in database
     """
-    db_url = "mysql+mysqlconnector://username:password@relational-db.cr9gp3lyn942.us-east-1.rds.amazonaws.com:3306/books"
+    # Use global keyword to reference the global variables
+    global db_url
+    global db
+    global comments_table
+    global video_info_table
+    global creators_table
+    global BASE_URL
+    global headers
+    global starting_url
+
+
+    # database elements
+    db_url = event["db_url"]
     db = dataset.connect(db_url)
+    comments_table = db['comments']
+    video_info_table = db['video_info']
+    creators_table = db['creators']
+
+    # Scraping elements
+    BASE_URL = "https://www.pornhub.com"
+    headers = {
+        "User-Agent": "For educational purposes for Large-Scale data-processing practice. Please contact: bitsikokos@uchicago.edu"
+    }
+    starting_url = "https://www.pornhub.com/video/random"
+
+    # how many videos to scrape
+    N = event["num_pages"]
 
     start_time = time.time()
-    N = 100
+
     for i in range(N):
         response = requests.get(starting_url, headers=headers)
         # TODO: if a video is already scraped, double entries appear in the comments table
@@ -237,3 +269,11 @@ def lambda_handler(event, context):
         scrape_and_insert_comments(porn_soup, view_key)
     end_time = time.time()
     print(f"Elapsed time: {end_time-start_time} seconds")
+
+    # close database connection
+    db.close()
+
+    return {
+        "statusCode": 200,
+        "body": json.dumps(f"Elapsed time: {end_time-start_time} seconds"),
+    }
