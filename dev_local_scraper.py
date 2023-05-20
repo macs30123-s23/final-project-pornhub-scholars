@@ -4,8 +4,7 @@ THIS IS A PURELY LOCAL NON PARALLELIZED VERSION OF THE SCRAPER. IT IS USED FOR
 DEBUGGING PURPOSES. IT IS NOT USED IN THE FINAL VERSION OF THE SCRAPER.
 
 This script scrapes the pornhub website and stores the data in a local database.
-The database is created in the same directory as the script and is called
-porn_data_href_error_debug.db
+The database is created in the same directory as the script 
 
 The script is called from the command line as:
 python dev_local_scraper.py
