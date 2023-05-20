@@ -44,6 +44,9 @@ def send_scrape(lambda_package, queue_url):
         MessageBody=json.dumps(lambda_package),
     )
 
+    if response['ResponseMetadata']['HTTPStatusCode'] != 200:
+        print("Error sending message to queue: {}".format(response))
+
 def update_lambda():
     """
     Lambda function deployment pipeline
@@ -113,6 +116,16 @@ def update_lambda():
             S3Bucket='final-project-pornhub-macss',
             S3Key=zip_file_name
             )
+    
+    # Set concurrency limit
+    try:
+        aws_lambda.put_function_concurrency(
+            FunctionName='pornhub_scraper',
+            ReservedConcurrentExecutions=10
+        )
+        print("Concurrency limit set successfully")
+    except Exception as e:
+        print("Failed to set concurrency limit: ", e)
 
     # Create SQS Queue
     try:
