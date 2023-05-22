@@ -12,6 +12,8 @@ In the digital age, there is a tremendous surplus of sexual content online, whil
 
 ### Background and Significance
 
+ADD BACKGROUND AND SIGNIFICANCE AND JUSTIFY WHY WE USED LARGE SCALE COMPUTING FOR THIS PROBLEM!!
+
 ### Data and Methods
 
 As previously stated, we scraped the top comments under videos posted to the online pornography site, PornHub. We gathered a total of ENTER_NUMBER_HERE comments. After cleaning the comments by removing stop words, we proceeded to the analysis. Overall, because we have a fairly large dataset of text data, it made sense to use scalable computing at each phase of the project. An explanation and justification of each method is presented below.
