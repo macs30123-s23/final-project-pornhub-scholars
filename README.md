@@ -25,6 +25,8 @@ To collect the data, we implemented a parallelized scraper using a lambda functi
 
 This scraper allowed us to scrape and store a large number of comments that we likely wouldn't have been able to scrape in a reasonable time frame on our local machines. We recognize that the more comments we have, the more likely it is that we have a dataset that accurately represents the comments that product consumer we will be able to get a dataset that represents the way that content consumers of pornographic material are reacting to female sex workers online.
 
+EDIT THIS PART: "So we can say, we had this issue with connections, that we sort of got around by limiting lambda functions, which just trades the issue for speed. We increased the memory capacity of the RDB to a T3.medium and increased max connections to 600 which allows to max out the 50 lambda limit and increase data gathering input."
+
 Code for the Scraper can be found HERE
 
 #### Data Exploration
