@@ -121,7 +121,7 @@ def update_lambda():
     try:
         aws_lambda.put_function_concurrency(
             FunctionName='pornhub_scraper',
-            ReservedConcurrentExecutions=10
+            ReservedConcurrentExecutions=20
         )
         print("Concurrency limit set successfully")
     except Exception as e:
