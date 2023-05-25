@@ -3,20 +3,29 @@
 ### MACS 30123
 ### Winter 2023
 
-## Introduction
+## Introduction, Background and Significance
 
-In the digital age, there is a tremendous surplus of sexual content online, while visibility of sex workers (and their rights) is becoming increasingly relevant. The amount of online activity around sexual content has the potential to have real-world, particularly harmful implications, as the lives of sex workers could be exploited or endangered. Online pornographic content has also severe implications for how content consumers perceive women (note that the term women in this context is used to refer to women regardless of their sex assigned at birth). A brief literature search we conducted suggests that sexual online content and the public discourse around it in platforms offering pornographic content is severely understudied, while the only computationally significant studies of such content are conducted by the platforms themselves. This project explores the perception of sex workers online by conducting a content analysis on comments scraped from Pornhub, a pornographic video-streaming website (see this [Wiki Article](https://en.wikipedia.org/wiki/Pornhub) for more information). We built a large-scale web-scraping and data pipeline on AWS that scraped comments from videos. We additionally conducted a data exploration and sentiment analysis to gain a general perception of the comment space. Finally, we trained sexism detector modelings to evaluate the amount of sexism prevalent in comments towards female sex workers online. Overall, our research answers the following research questions: 
+In the digital age, there is a tremendous surplus of sexual content online, while visibility of sex workers (and their rights) is becoming increasingly relevant. The amount of online activity around sexual content has the potential to have real-world, particularly harmful implications, as the lives of sex workers could be exploited or endangered. 
 
-1. In what ways do people interact with sex workers online?
-2. To what extent is there sexism in these interactions? Are they positive? Negative? Or even nasty?
+Online pornographic content has also severe implications for how content consumers perceive women (note that the term women in this context is used to refer to women regardless of their sex assigned at birth). Sexual online content and the public discourse around it in platforms offering pornographic content is severely understudied (Phihlaja, 2016), while the only computationally significant studies of such content are conducted by the platforms themselves (see for example [Pornhub comments](https://www.pornhub.com/insights/pornhub-comments)). This project explores the perception of sex workers online by conducting a content analysis on comments scraped from Pornhub, a pornographic video-streaming website (see this [Wiki Article](https://en.wikipedia.org/wiki/Pornhub) for more information). 
 
-## Background and Significance
+We built a large-scale web-scraping and data pipeline on AWS that scraped comments from videos. We additionally conducted a data exploration and sentiment analysis to gain a general perception of the comment space. Finally, we trained sexism detector models to evaluate the amount of sexism prevalent in comments towards sex workers online. Overall, our research answers the following research questions: 
 
-ADD BACKGROUND AND SIGNIFICANCE AND JUSTIFY WHY WE USED LARGE SCALE COMPUTING FOR THIS PROBLEM!!
+1. What is the public discourse in online pornography websites?
+2. To what extent is there sexism in these media? Is the content positive? Negative? Or even nasty?
 
-## Data and Methods
+Sex work has significant consequences for social life that often go unoticed. To showcase the hidden implications sex work can have in society, we conducted a short ethnographic study. we interviewed Greece's last model shoe maker, who constructs shoe models for both large-scale production and custom made shoes. With his business slowly fading away, he largely depends on custom shoe model orders by workers in the sex industry. The interview can be found [here](https://youtu.be/kgSEouqwGbw)
 
-As previously stated, we scraped the top comments under videos posted to the online pornography site, PornHub. We gathered a total of ENTER_NUMBER_HERE comments. After cleaning the comments by removing stop words, we proceeded to the analysis. Overall, because we have a fairly large dataset of text data, it made sense to use scalable computing at each phase of the project. To create a random selection of video comments to scrape, we made use of Pornhub's random video call feature, which surfaces a random video from the Pornhub library. The Pornhub website makes extensive use of Javascript, an so a maximum of 10 of the most popular (most upvoted) comments are available per video. An explanation and justification of each method is presented below. 
+
+## Data, Methods and Scalability
+
+As previously stated, we scraped the top comments under videos posted to the online pornography site, PornHub. We gathered a total of 839.537 comments, from 149.431 videos posted by 2.493 creators. After cleaning the comments by removing stop words, we proceeded to the analysis. Overall, because we have a fairly large dataset of text data, it made sense to use scalable computing at each phase of the project. In addition, since the website's content is expected to aggregate over time, it is important to have a working large-scale pipeline that scrapes content asynchronously and stores data on the cloud. Completing our analysis in a scalable way, enables us to continue studying these online spaces over time and enrich the literature even further.
+
+To create a random selection of video comments to scrape, we made use of Pornhub's random video call feature, which surfaces a random video from the Pornhub library. The Pornhub website makes extensive use of Javascript, and so a maximum of 10 of the most popular (most upvoted) comments are available per video. Future research could make use of more advanced webscrapping libraries to further enrich our data. An explanation and justification of each method is presented below. 
+
+### Sentiment classification
+
+### Sexism classification
 
 ## Structure of Processes
 
@@ -94,3 +103,6 @@ OVERALL STATEMENT HERE
 
 ### Conclusion
 
+### References
+- Pihlaja, S. (2016). Expressing pleasure and avoiding engagement in online adult video comment sections. Journal of Language and Sexuality, 5(1), 94–112. [https://doi.org/10.1075/jls.5.1.04pih](https://doi.org/10.1075/jls.5.1.04pih) 
+- 
