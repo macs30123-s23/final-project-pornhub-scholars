@@ -21,6 +21,9 @@ import os
 
 
 def write_config(ENDPOINT, PORT, rdb_name, USERNAME, PASSWORD):
+    """
+    Write db info on config file (db_details.ini)
+    """
     config = configparser.ConfigParser()
     config.read('db_details.ini')
     config["DATABASE"] = {
@@ -36,6 +39,9 @@ def write_config(ENDPOINT, PORT, rdb_name, USERNAME, PASSWORD):
 
 
 def read_config():
+    """
+    Read config file from db_details.ini
+    """
     config = configparser.ConfigParser()
     config.read("db_details.ini")
     ENDPOINT = config.get("DATABASE", "ENDPOINT")
@@ -64,6 +70,7 @@ def download_database():
         df = pd.read_sql_query(f"SELECT * FROM {table}", engine)
         df.to_parquet(f"./tables/{table}.parquet")
 
+
 def create_s3_bucket():
     """
     Creates the S3 Bucket for the zip file for lambda upload the zip
@@ -71,7 +78,6 @@ def create_s3_bucket():
     s3_client = boto3.client('s3')
     iam_client = boto3.client('iam')
     role = iam_client.get_role(RoleName='LabRole')
-
 
     bucket_name = 'final-project-pornhub-macss'
     file_name = 'lambda_deployment.zip'
@@ -90,8 +96,9 @@ def create_s3_bucket():
             Bucket=bucket_name,
             Key=key_name
         )
-        print(f"File {file_name} uploaded to bucket {bucket_name} and set as public read and write.")
-        
+        print(
+            f"File {file_name} uploaded to bucket {bucket_name} and set as public read and write.")
+
     except BotoCoreError as e:
         print(e)
     except ClientError as e:
@@ -128,7 +135,8 @@ def create_aws_rdb():
         else:
             raise
 
-    db = rds.describe_db_instances(DBInstanceIdentifier="relational-db")["DBInstances"][
+    db = rds.describe_db_instances(DBInstanceIdentifier="relational-db")[
+        "DBInstances"][
         0
     ]
     ENDPOINT = db["Endpoint"]["Address"]
@@ -182,7 +190,8 @@ def create_database_table(ENDPOINT, PORT, rdb_name, USERNAME, PASSWORD):
     """
     print("Creating database tables...")
     conn = mysql.connector.connect(
-        host=ENDPOINT, user=USERNAME, passwd=PASSWORD, port=PORT, database=rdb_name
+        host=ENDPOINT, user=USERNAME, passwd=PASSWORD, port=PORT,
+        database=rdb_name
     )
     cursor = conn.cursor(buffered=True)
 
@@ -239,7 +248,8 @@ def delete_database():
     print(response["DBInstance"]["DBInstanceStatus"])
 
     # wait until DB is deleted before proceeding
-    rds.get_waiter("db_instance_deleted").wait(DBInstanceIdentifier="relational-db")
+    rds.get_waiter("db_instance_deleted").wait(
+        DBInstanceIdentifier="relational-db")
     print("RDS Database has been deleted")
 
 
@@ -248,7 +258,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--create", action="store_true", help="create the database tables"
     )
-    parser.add_argument("--close", action="store_true", help="close the database")
+    parser.add_argument("--close", action="store_true",
+                        help="close the database")
     parser.add_argument(
         "--download",
         action="store_true",

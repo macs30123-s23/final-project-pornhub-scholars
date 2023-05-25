@@ -1,4 +1,3 @@
-
 import requests
 import dataset
 import re
@@ -19,48 +18,91 @@ BASE_URL = None
 headers = None
 starting_url = None
 
+
 def upsert_comment(username_href, view_key, comment_text, upvotes, timestamp):
-    data = dict(username_href=username_href, view_key=view_key, comment_text=comment_text, upvotes=upvotes, timestamp=timestamp)
+    """
+    Insert or update comments table.
+
+    Inputs:
+        - username_href (str) commentator's username tag
+        - view_key (str) video key
+        - comment_text (str) the comment text
+        - upvotes (int) number of upvotes for comment
+        - timestamp (float) time
+
+    Returns: None
+    """
+    data = dict(username_href=username_href, view_key=view_key,
+                comment_text=comment_text, upvotes=upvotes, timestamp=timestamp)
     comments_table.upsert(data, ['username_href', 'view_key', 'comment_text'])
 
 
-def upsert_video(
-    view_key,
-    title,
-    creator_name,
-    creator_href,
-    views,
-    rating,
-    year_added,
-    categories,
-    timestamp,
-):
-    data = dict(view_key=view_key, title=title, creator_name=creator_name, creator_href=creator_href, views=views, rating=rating, year_added=year_added, categories=categories, timestamp=timestamp)
+def upsert_video(view_key, title, creator_name, creator_href, views, rating,
+                 year_added, categories, timestamp, ):
+    """
+    Insert or update the video_info table.
+
+    Inputs:
+        - view_key (str) the video key
+        - title (str) title of the video
+        - creator_name (str) the video's creator name
+        - creator_href (str) the video's creator username tag
+        - views (int) number of views the video has
+        - rating (flaot) video's rating (from 0 to 1)
+        - year_added (str) video added 'x years ago'
+        - categories (str) a list of categories in a string format
+        - timestamp (float) time
+
+    Returns None
+    """
+    data = dict(view_key=view_key, title=title, creator_name=creator_name,
+                creator_href=creator_href, views=views, rating=rating,
+                year_added=year_added, categories=categories,
+                timestamp=timestamp)
     video_info_table.upsert(data, ['view_key'])
 
 
-def upsert_creator(
-    creator_href,
-    creator_name,
-    creator_type,
-    about_info,
-    video_count,
-    subscribers,
-    infos,
-    timestamp,
-):
-    data = dict(creator_href=creator_href, creator_name=creator_name, creator_type=creator_type, about_info=about_info, video_count=video_count, subscribers=subscribers, infos=str(infos), timestamp=timestamp)
+def upsert_creator(creator_href, creator_name, creator_type, about_info,
+                   video_count, subscribers, infos, timestamp, ):
+    """
+    Update or insert creators table
+
+    Inputs:
+        - creator_href (str) creator username tag
+        - creator_name (str) name of the creator
+        - creator_type (str) creator type --> 'channels', 'model', 'pornstar'
+        - about_info (str) about info of creator
+        - video_count (int) number of videos by creator
+        - subscribers (int) number of subscribers
+        - infos (str) creator info dictionary in a string format
+        - timestamp (float) time
+    """
+    data = dict(creator_href=creator_href, creator_name=creator_name,
+                creator_type=creator_type, about_info=about_info,
+                video_count=video_count, subscribers=subscribers,
+                infos=str(infos), timestamp=timestamp)
     creators_table.upsert(data, ['creator_href'])
 
 
 def scrape_and_insert_comments(porn_soup, view_key):
+    """
+    Scrapes and inserts comments table
+
+    Inputs:
+        - porn_soup (bs4.BeautifulSoup) video page as bs4 soup object
+        - view_key (str) the video's key tag
+
+    Returns: None
+    """
     user_data_blocks_list = porn_soup.findAll(
         "div", {"class": "topCommentBlock clearfix"}
     )
     comment_data_list = porn_soup.findAll("div", {"class": "commentMessage"})
-    upvotes_data_list = porn_soup.findAll("div", {"class": "actionButtonsBlock"})
+    upvotes_data_list = porn_soup.findAll("div",
+                                          {"class": "actionButtonsBlock"})
     for user_block, comment_block, upvote_block in zip(
-        user_data_blocks_list[:-1], comment_data_list[:-1], upvotes_data_list[:-1]
+            user_data_blocks_list[:-1], comment_data_list[:-1],
+            upvotes_data_list[:-1]
     ):
         if user_block.find("a"):
             user_href = user_block.find("a").get("href")
@@ -69,8 +111,19 @@ def scrape_and_insert_comments(porn_soup, view_key):
             timestamp = time.time()
             upsert_comment(user_href, view_key, comment_text, upvote, timestamp)
 
+
 def scrape_and_insert_video_and_creator(porn_soup, view_key):
-    # scrape insert video info
+    """
+    Scrapes and inserts video_info and creators tables
+
+    Inputs:
+        - porn_soup (bs4.BeautifulSoup) video page as bs4 soup object
+        - view_key (str) the video's key tag
+
+    Return: None
+    """
+
+    # scrape video info
     try:
         video_title = porn_soup.find("span", {"class": "inlineFree"}).text
     except AttributeError:
@@ -102,45 +155,50 @@ def scrape_and_insert_video_and_creator(porn_soup, view_key):
 
     if porn_soup.find("a", {"class": "gtm-event-link bolded"}):
         try:
-            creator_name = porn_soup.find("a", {"class": "gtm-event-link bolded"}).text
+            creator_name = porn_soup.find("a", {
+                "class": "gtm-event-link bolded"}).text
         except AttributeError:
             creator_name = None
         try:
-            creator_href = porn_soup.find("a", {"class": "gtm-event-link bolded"})[
-                "href"
-            ]
+            creator_href = \
+                porn_soup.find("a", {"class": "gtm-event-link bolded"})[
+                    "href"
+                ]
         except AttributeError:
             creator_href = None
     else:
         try:
             creator_name = (
-                porn_soup.find("div", {"class": "userInfoContainer"}).find("a").text
+                porn_soup.find("div", {"class": "userInfoContainer"}).find(
+                    "a").text
             )
         except AttributeError:
             creator_name = None
         try:
             creator_href = (
                 porn_soup.find("div", {"class": "userInfoContainer"})
-                .find("a")
-                .get("href")
+                    .find("a")
+                    .get("href")
             )
         except AttributeError:
             creator_href = None
-    
+
     if creator_href:
         model_response = requests.get(BASE_URL + creator_href, headers=headers)
     else:
         try:
-            creator_href = porn_soup.find("div", {"class": "pornstarNameIcon"}).find("a")['href']
+            creator_href = \
+                porn_soup.find("div", {"class": "pornstarNameIcon"}).find("a")[
+                    'href']
         except AttributeError:
             creator_href = None
-        
+
         if creator_href:
-            model_response = requests.get(BASE_URL + creator_href, headers=headers)
+            model_response = requests.get(BASE_URL + creator_href,
+                                          headers=headers)
         else:
             print("Creator href error")
             return
-    
 
     try:
         creator_type = creator_href.split("/")[1]
@@ -151,8 +209,8 @@ def scrape_and_insert_video_and_creator(porn_soup, view_key):
     try:
         creator_video_count = (
             porn_soup.find("div", {"class": "userInfoContainer"})
-            .find("span", {"class": "videosCount"})
-            .text
+                .find("span", {"class": "videosCount"})
+                .text
         )
     except AttributeError:
         creator_video_count = None
@@ -160,16 +218,18 @@ def scrape_and_insert_video_and_creator(porn_soup, view_key):
     try:
         subscribers_count = (
             porn_soup.find("div", {"class": "userInfoContainer"})
-            .find("span", {"class": "subscribersCount"})
-            .text
+                .find("span", {"class": "subscribersCount"})
+                .text
         )
     except AttributeError:
         subscribers_count = None
 
+    # scrape creator webpage
     model_soup = BeautifulSoup(model_response.text, "html.parser")
     infos = {}
     try:
-        about_info = model_soup.find("div", {"class": "about"}).find("div").text.strip()
+        about_info = model_soup.find("div", {"class": "about"}).find(
+            "div").text.strip()
     except AttributeError:
         about_info = None
 
@@ -177,7 +237,8 @@ def scrape_and_insert_video_and_creator(porn_soup, view_key):
         for info_tag in model_soup.findAll("div", {"class": "infoPiece"}):
             key = info_tag.find("span").text.strip().rstrip(":")
             try:
-                value = info_tag.find("span", {"class": "smallInfo"}).text.strip()
+                value = info_tag.find("span",
+                                      {"class": "smallInfo"}).text.strip()
             except AttributeError:
                 value = None
             infos[key] = value
@@ -188,7 +249,8 @@ def scrape_and_insert_video_and_creator(porn_soup, view_key):
             infos[key] = value
     else:  # channel
         pass
-    
+
+    # upsert tables
     timestamp = time.time()
     upsert_creator(
         creator_href,
@@ -213,7 +275,6 @@ def scrape_and_insert_video_and_creator(porn_soup, view_key):
         str(video_categories),
         timestamp,
     )
-
 
 
 def lambda_handler(event, context):
@@ -246,21 +307,25 @@ def lambda_handler(event, context):
             # Scraping elements
             BASE_URL = "https://www.pornhub.com"
             headers = {
-                "User-Agent": "For educational purposes for Large-Scale data-processing practice. Please contact: bitsikokos@uchicago.edu"
+                "User-Agent": """For educational purposes for Large-Scale
+                                 data-processing practice.
+                                 Please contact: bitsikokos@uchicago.edu
+                              """
             }
             starting_url = "https://www.pornhub.com/video/random"
 
             # how many videos to scrape
-            N = data["num_pages"]
+            num_pages = data["num_pages"]
 
             start_time = time.time()
 
-            for i in range(N):
+            for i in range(num_pages):
                 response = requests.get(starting_url, headers=headers)
                 video_url = response.url
                 print(video_url)
                 try:
-                    view_key = re.findall(r"viewkey=([a-zA-Z0-9]+)", video_url)[0]
+                    view_key = re.findall(r"viewkey=([a-zA-Z0-9]+)",
+                                          video_url)[0]
                 except IndexError:
                     continue
                 porn_soup = BeautifulSoup(response.text, "html.parser")
@@ -268,11 +333,12 @@ def lambda_handler(event, context):
                 scrape_and_insert_video_and_creator(porn_soup, view_key)
                 scrape_and_insert_comments(porn_soup, view_key)
             end_time = time.time()
-            print(f"Elapsed time: {end_time-start_time} seconds")
+            print(f"Elapsed time: {end_time - start_time} seconds")
 
             return {
                 "statusCode": 200,
-                "body": json.dumps(f"Elapsed time: {end_time-start_time} seconds"),
+                "body": json.dumps(
+                    f"Elapsed time: {end_time - start_time} seconds"),
             }
     finally:
         if db:

@@ -24,7 +24,6 @@ import os
 import shutil
 from tqdm import tqdm
 
-
 aws_lambda = boto3.client('lambda', region_name='us-east-1')
 iam_client = boto3.client('iam')
 sqs = boto3.client('sqs', region_name='us-east-1')
@@ -33,6 +32,7 @@ role = iam_client.get_role(RoleName='LabRole')
 
 config = configparser.ConfigParser()
 config.read('db_details.ini')
+
 
 def send_scrape(lambda_package, queue_url):
     """
@@ -47,6 +47,7 @@ def send_scrape(lambda_package, queue_url):
     if response['ResponseMetadata']['HTTPStatusCode'] != 200:
         print("Error sending message to queue: {}".format(response))
 
+
 def update_lambda():
     """
     Lambda function deployment pipeline
@@ -54,7 +55,8 @@ def update_lambda():
     # If zip file does not exist at current directory, download it from S3
     if not os.path.exists('lambda_deployment.zip'):
         print("Downloading zip file from S3...")
-        s3.download_file('final-project-pornhub-macss', 'lambda_deployment.zip', 'lambda_deployment.zip')
+        s3.download_file('final-project-pornhub-macss', 'lambda_deployment.zip',
+                         'lambda_deployment.zip')
 
     # Temporary directory for holding the unzipped files
     temp_dir = 'temp_dir'
@@ -115,8 +117,8 @@ def update_lambda():
             FunctionName='pornhub_scraper',
             S3Bucket='final-project-pornhub-macss',
             S3Key=zip_file_name
-            )
-    
+        )
+
     # Set concurrency limit
     try:
         aws_lambda.put_function_concurrency(
@@ -132,9 +134,9 @@ def update_lambda():
         queue_url = sqs.create_queue(QueueName='scraper_queue')['QueueUrl']
     except sqs.exceptions.QueueNameExists:
         queue_url = [url
-                    for url in sqs.list_queues()['QueueUrls']
-                    if 'scraper_queue' in url][0]
-    
+                     for url in sqs.list_queues()['QueueUrls']
+                     if 'scraper_queue' in url][0]
+
     # Write queue url to config file
     config['QUEUE'] = {
         'queue_url': queue_url
@@ -143,10 +145,11 @@ def update_lambda():
     with open('db_details.ini', 'w') as configfile:
         config.write(configfile)
 
-    # Set visibility timeout to 5 minutes (300 seconds) to be longer than the lambda timeout
+    # Set visibility timeout to 5 minutes (300 seconds)
+    # to be longer than the lambda timeout
     sqs.set_queue_attributes(
-    QueueUrl=queue_url,
-    Attributes={'VisibilityTimeout': '300'} 
+        QueueUrl=queue_url,
+        Attributes={'VisibilityTimeout': '300'}
     )
 
     sqs_info = sqs.get_queue_attributes(QueueUrl=queue_url,
@@ -166,7 +169,7 @@ def update_lambda():
             EventSourceArn=sqs_arn,
             FunctionName='pornhub_scraper'
         )['EventSourceMappings'][0]['UUID']
-        
+
         response = aws_lambda.update_event_source_mapping(
             UUID=es_id,
             FunctionName='pornhub_scraper',
@@ -185,13 +188,16 @@ def read_config():
     sqs_url = config.get('QUEUE', 'queue_url')
     return ENDPOINT, PORT, rdb_name, USERNAME, PASSWORD, sqs_url
 
+
 def scrape(num_lambdas=10, num_pages=10):
     """
-    
+    Connect to db and invoke lambdas for scraping
     """
     ENDPOINT, PORT, rdb_name, USERNAME, PASSWORD, sqs_url = read_config()
 
-    db_url = "mysql+mysqlconnector://{}:{}@{}:{}/{}".format(USERNAME, PASSWORD, ENDPOINT, PORT, rdb_name)
+    db_url = "mysql+mysqlconnector://{}:{}@{}:{}/{}".format(USERNAME, PASSWORD,
+                                                            ENDPOINT, PORT,
+                                                            rdb_name)
     print("Using database url: {}".format(db_url))
 
     # the lambda package to send to the state machine
@@ -210,13 +216,17 @@ def scrape(num_lambdas=10, num_pages=10):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Python script that accepts command line arguments.")
-    parser.add_argument('-l', '--num_lambdas', default=10, type=int, help="Number of lambdas")
-    parser.add_argument('-n', '--num_pages', default=10, type=int, help="Number of pages")
-    parser.add_argument('--update', action='store_true', help="Flag to trigger lambda update")
+    parser = argparse.ArgumentParser(
+        description="Python script that accepts command line arguments.")
+    parser.add_argument('-l', '--num_lambdas', default=10, type=int,
+                        help="Number of lambdas")
+    parser.add_argument('-n', '--num_pages', default=10, type=int,
+                        help="Number of pages")
+    parser.add_argument('--update', action='store_true',
+                        help="Flag to trigger lambda update")
 
     args = parser.parse_args()
-    
+
     if args.update:
         update_lambda()
 
