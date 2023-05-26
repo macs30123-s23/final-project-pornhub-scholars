@@ -68,12 +68,12 @@ SHOW GLOBAL status WHERE Variable_name LIKE 'Max_used_connections';
 $12,000$ lambda functions pushed to the SQS Queue with a maximum concurrent lambda limit of 20 takes around 14 hours to complete a full run pulling roughly $900,000$ comments, though this number will vary because of the call to Pornhub's random video call, which surfaces a random video from the Pornhub library.
 
 When scraping is finished, the full database schema can be downloaded as set of 3 `.parquet` files via
-```shell
+```
 python create_database.py --download
 ```
 and the RDB can be closed via
 
-```shell
+```
 python create_database.py --close
 ```
 
