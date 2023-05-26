@@ -21,11 +21,7 @@ Sex work has significant consequences for social life that often go unoticed. To
 
 As previously stated, we scraped the top comments under videos posted to the online pornography site, PornHub. We gathered a total of 839.537 comments, from 149.431 videos posted by 2.493 creators. After cleaning the comments by removing stop words, we proceeded to the analysis. Overall, because we have a fairly large dataset of text data, it made sense to use scalable computing at each phase of the project. In addition, since the website's content is expected to aggregate over time, it is important to have a working large-scale pipeline that scrapes content asynchronously and stores data on the cloud. Completing our analysis in a scalable way, enables us to continue studying these online spaces over time and enrich the literature even further.
 
-To create a random selection of video comments to scrape, we made use of Pornhub's random video call feature, which surfaces a random video from the Pornhub library. The Pornhub website makes extensive use of Javascript, and so a maximum of 10 of the most popular (most upvoted) comments are available per video. Future research could make use of more advanced webscrapping libraries to further enrich our data. An explanation and justification of each method is presented below. 
-
-### Sentiment classification
-
-### Sexism classification
+To create a random selection of video comments to scrape, we made use of Pornhub's random video call feature, which surfaces a random video from the Pornhub library. The Pornhub website makes extensive use of Javascript, and so a maximum of 10 of the most popular (most upvoted) comments are available per video. Future research could make use of more advanced webscrapping libraries to further enrich our data. An explanation and justification of each method is presented below in their respective sections.
 
 ## Structure of Processes
 
