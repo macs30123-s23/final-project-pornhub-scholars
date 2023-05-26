@@ -3,6 +3,11 @@
 ### MACS 30123
 ### Winter 2023
 
+Who worked on what: 
+- Screper---Loizos Bitsikokos, Joseph Helbing 
+- AWS Pipeline--- Joseph Helbing, Kaya Borlase
+- Pyspark Analysis--- Loizos Bitsikokos, Kaya Borlase
+
 ## Introduction, Background and Significance
 
 Pornography is a rather controversial topic with multiple sources attacking or defending it (Hald et al., 2014). In the digital age, there is a tremendous surplus of sexual content online (Pihlaja, 2016), while visibility of sex workers and sex worker rights is becoming increasingly relevant (Ham & Gerard, 2013; Verhoeven & van Gestel, 2016; Jones, 2022; Gilbert, 2023). The amount of online activity around sexual content has the potential to have real-world, particularly harmful implications, as the lives of sex workers could be exploited or endangered. Sex workers are a historically marginalized and vulnerable group (Guerta Pastori et al., 2022) that faces significant disadvantages in terms of health case access due to structural and policy barriers (Wanyenze et al., 2017), risks of sexual violence and police mistreatment (Zvi, 2021).
