@@ -115,7 +115,7 @@ Our word frequency analysis results are below in both a WordCloud with the Top 5
 
 ![](./data_pipeline/images/top_20_and_wordcloud.png)
 
-In addition, through counting the number of videos posted by different types of creators, we see that the vast majority of videos in our dataset concerns channels ($109,182$ videos), while independent models are a minority ($13,024$ videos). This could mean that porn as an "industry" mihgt be driving online sexual content.
+In addition, through counting the number of videos posted by different types of creators, we see that the vast majority of videos in our dataset concerns channels ($109,182$ videos), while independent models are a minority ($13,024$ videos). This could mean that porn as an "industry" might be driving online sexual content.
 
 ![](./data_pipeline/images/creator_type_counts.png)
 
