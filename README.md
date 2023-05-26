@@ -155,11 +155,11 @@ As previously stated, our analysis allowed us to gain an understanding of the na
 
 First, while we classified the comments on sexism and racism (with a focus on sexism), it is likely that the comments also have other forms of discrimination present, such as homophobia. With that in mind, it would be important in future analyses to include some sort of homophobia, or other, classifiers to account for more harm perpetuation in the online discourse.
 
-Second, we do not break down the PornHub videos by category of porn or by who is viewing the videos. In this way, because we are randomly selecting videos, we might be noticing trends that are actually driven by just a subset of the comments on PornHub videos. In the future, a scraper which somehow finds the tags on that video might be helpful for a more complete analysis.
+Second, we do not break down the PornHub videos by category of porn or by who is viewing the videos. In this way, because we are randomly selecting videos, we might be noticing trends that are actually driven by just a subset of PornHub videos. Note that the video titles content analysis reveals that the words "tenn" and "MILF" are prevalent in our dataset. This might mean that our analysis is driven by specific categories of porn. In the future, a scraper which somehow finds video tags might be helpful for a more complete analysis. 
 
 Third, it is possible, as with any other online platform, that some of the comments that we scraped were left by bots and not by people. Bots are used to drive video engagement, because they can create traffic (see this [forum]((https://hackforums.net/showthread.php?tid=5990040)) where someone is selling PornHub Bots to drive traffic to videos. It seems like most of our comments have valid text data, so we believe this is not skewing our results much.
 
-Finally, 800,000 comments just begins to scratch the surface of the complete space of Pornhub comments. Future analyses should attempt to scrape many more comments to see whether our subset was fully representative of the whole space.
+Finally, $800,000$ comments just begins to scratch the surface of the complete space of Pornhub comments. Future analyses should attempt to scrape many more comments to evaluate whether our subset was fully representative of the whole space.
 
 Overall, because research in this space is limited, the analysis could be improved and built upon in the future, as the field studying online discourse around sex work expands and develops.
 
