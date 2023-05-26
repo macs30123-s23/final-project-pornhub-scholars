@@ -71,37 +71,68 @@ Code for [create_datapase.py](create_database.py) and [scrape.py](scrape.py).
 ## Data Exploration
 
 In order to explore the data, we use Pyspark to visualize different aspects of the text data. Because Pyspark uses a [lazy evaluation model](https://data-flair.training/blogs/apache-spark-lazy-evaluation/), it can be more efficient for working with large datasets. This is ideal for data visualizations that we present in the results section below. We ran the following data exploration:
-1. ADD IN HERE
+1. Our upvote exploration involved using Pysparks groupby and count function to show the amount of times a video got a certain number of upvotes. We also computed the mean number of upvotes.
+2. We additionally used Pyspark's map-reduce-by-key to find the most frequent words used in the PornHub Comments. This distributed the counting process across workers so our code was able to run more efficiently.
 
-Code for our Data Exploration can be found HERE
+Code for our Data Exploration can be found in the [01_data_exploration.ipynb](data_pipeline/01_data_exploration.ipynb)
 
 ## Sentiment Classification Model
 
 Our Sentiment Classifier allowed us to understand some of the emotion behind the way that people comment on content from sex workers. PySpark allows for a distributed computing framework which allows us to perform the Sentiment Analysis tasks much more efficiently for our dataset. The Sentiment Analysis task was implemented in the following steps:
-1. STEPS HERE
-
-Code for the sentiment analysis can be found HERE
+1. Our simple sentiment classifier ran using Pyspark's TextBlob and Sentiment functions. The sentiment score was given on a scale from -1 to 1, with -1 being the most negative and 1 being the most positive. The code for this sentiment classification can be found in [02_sentiment_scores.ipynb](data_pipeline/02_sentiment_scores.ipynb)
+2. The BERT Sentiment classifier calculated a love, joy, surprise, sadness, and anger score for each PornHub comments. While this does not specifically run on pyspark, we do run a large-scale Transformer model, which is the BERT model. We believe that in the future, this code could be parallelized, especially when predicting sentiment in each of the comments (i.e. dividing comments between workers and having each worker take the model and predict sentiment for its selected comments). This code specifically trained the model on the "emotions" dataset found within Python's datasets package. Code for the BERT sentiment analysis can be found in [02b_BERT_sentiment_transformer.ipynb](data_pipeline/02b_BERT_sentiment_transformer).
 
 ## Sexism Classifier
 
 We explored the sexism present against female sex workers online by running a Sexism classifier on Pyspark. Pyspark's high computation power was well suited for our model which used text data as input for our classification model. Our Sexism classifier runs the following steps:
-1. STEPS HERE
+1. Pull from the 'cyberbullying' model found in Spark's NLP classification library to create an NLP Pipeline.
+2. After preparing the data, run our text data through the NLP Pipeline to label each comment as being sexist, neutral, or racist. Using a SparkNLP model ensures the workload is distributed and makes our classification code efficient.
 
-Code for the sexism classification model can be found HERE
+Code for the sexism classification model can be found in [03_sexism.ipynb](data_pipeline/03_sexism.ipynb)
 
-### Results
+### Results and Discussion
 
-OVERALL STATEMENT HERE
+Overall, we found quite a large number of comments were sexist. We additionally got quite positive sentiment analysis results, but there could be errors in our models. In particular, these language models were not trained specifically on text content that was sexually explicit in nature. Therefore, we believe that the sentiment analysis results and the sexism classification results might be skewed. Overall, we feel we are underestimating the amount of sexism in the comments and overestimating the positive sentiment in the comments.
 
 #### Data Exploration
 
+Regarding the number of upvotes, we found that overall the average number of upvotes was around 8 upvotes. For the number of people using Pornhub, this number was lower than we were expecting. However, considering the design of the platform and the fact that people are largely using Pornhub to watch videos and not interact with other consumers, it makes sense that the number of upvotes would be small.
+
+Our word frequency analysis results are below in both a WordCloud with the Top 50 most frequent words and a bar chart with the Top 20 most frequenct words. We were surprised to see that "love" was the top word in the PornHub Comments. This is likely the case because consumers are saying they "love" and aspect of the video, or especially love some part of the sex worker - the sex worker(s) themselves, a part of their body, etc.. 
+
+WORD FREQUENCY WORDCLOUD HERE
+
+WORD FREQUENCY CHART HERE
+
 #### Sentiment Analysis
+
+We found that, in general, while there are a lot of neutral comments, the comments skew to the positive side, per the chart below.
+
+SENTIMENT CHART HERE
+
+Additionally, when we broke down the Sentiment Analysis into separate emotions, we found that most of the comments were classified as having the highest level of "joy" out of the emotions. The second most prevalent emotion was "anger". Overall, we believe that this dichotomy could be capturing the sort of aggressive praise that many sex workers get from the content consumers, and that we are not actually seeing actual joy expressed in the comments, in a way "joy" might be typically described.
+
+SENTIMENT BY EMOTION HERE
 
 #### Sexism Classification Model
 
-### Discussion
+Finally, our sexism classification model classified quite a few comments as sexist, per the chart below. In a quick perusal of these classifications, though, we noticed that the model was failing to classify comments as sexist despite clearly targeted words being used. This is likely because the model was unable to pick up on slang terms and had to take the comments at face value. For example, a comment about a "bush" was not describing a hedge found outside, but the model was not able to pick up on this and failed to flag these types of comments. For that reason, we believe we are underestimating sexism because the sexism classification model was not trained for this specific content. We also found that relatively few comments were flagged as being racist. Of those that were, we noticed that any comments that mentioned praying were flagged as racist even if they didn't mention race. Therefore, we believe that the racism classification part of the model is flawed as well.
+
+SEXISM CHART ONE
+
+When we looked at the average sentiment score for different classifications of comments, we found that the most positive category of comments was the sexist category. This was unexpected, and likely points to an error in using a model that was not trained on this specific type of text data. That being said, there is an interesting trend of comments using positive words when discussing the sex workers body or their work in the video, which is interesting in the space as well.
+
+SEXISM CHART TWO
 
 ### Conclusion
+
+Overall, both the sentiment and sexism classifier point to important social implications of these comments. If comments are more positive towards certain types of sex workers, it is likely to perpetuate stereotypes about what is desireable, which in turn can create unrealistic expectations for people in real life. Additionally, if the comments are sexist or racist, they perpetuate prejudiced views against women and people of color which can be harmful especially in intimate circumstances when people are vulnerable. Overall, large scale methods allowed us to examine a broad scope of the PornHub digital space and allowed us to analyze them efficiently, although perhaps not completely accurately. That being said, we were able to gain a baseline understanding of the nature of comments on the Pornhub website.
+
+### Future Implications and Limitations
+
+- homophobia model?
+- more comments
+- breaking down by category?
 
 ### References
 - Pihlaja, S. (2016). Expressing pleasure and avoiding engagement in online adult video comment sections. Journal of Language and Sexuality, 5(1), 94–112. [https://doi.org/10.1075/jls.5.1.04pih](https://doi.org/10.1075/jls.5.1.04pih) 
