@@ -104,21 +104,22 @@ Our word frequency analysis results are below in both a WordCloud with the Top 5
 
 We found that, in general, while there are a lot of neutral comments, the comments skew to the positive side, per the chart below.
 
-SENTIMENT CHART HERE
+<img src="data_pipeline/images/sent_scores.png" alt="Sentiment Scores">
 
 Additionally, when we broke down the Sentiment Analysis into separate emotions, we found that most of the comments were classified as having the highest level of "joy" out of the emotions. The second most prevalent emotion was "anger". Overall, we believe that this dichotomy could be capturing the sort of aggressive praise that many sex workers get from the content consumers, and that we are not actually seeing actual joy expressed in the comments, in a way "joy" might be typically described.
 
-SENTIMENT BY EMOTION HERE
+<img src="data_pipeline/images/avg_bert.png" alt="BERT Emotion Score">
 
 #### Sexism Classification Model
 
 Finally, our sexism classification model classified quite a few comments as sexist, per the chart below. In a quick perusal of these classifications, though, we noticed that the model was failing to classify comments as sexist despite clearly targeted words being used. This is likely because the model was unable to pick up on slang terms and had to take the comments at face value. For example, a comment about a "bush" was not describing a hedge found outside, but the model was not able to pick up on this and failed to flag these types of comments. For that reason, we believe we are underestimating sexism because the sexism classification model was not trained for this specific content. We also found that relatively few comments were flagged as being racist. Of those that were, we noticed that any comments that mentioned praying were flagged as racist even if they didn't mention race. Therefore, we believe that the racism classification part of the model is flawed as well.
 
-SEXISM CHART ONE
+<img src="data_pipeline/images/count_classifications.png" alt="Counts By Classification">
 
 When we looked at the average sentiment score for different classifications of comments, we found that the most positive category of comments was the sexist category. This was unexpected, and likely points to an error in using a model that was not trained on this specific type of text data. That being said, there is an interesting trend of comments using positive words when discussing the sex workers body or their work in the video, which is interesting in the space as well.
 
-SEXISM CHART TWO
+<img src="data_pipeline/images/avg_sent_class.png" alt="Sentiment Score by Classification">
+
 
 ### Conclusion
 
