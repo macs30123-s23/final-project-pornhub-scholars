@@ -96,9 +96,9 @@ Regarding the number of upvotes, we found that overall the average number of upv
 
 Our word frequency analysis results are below in both a WordCloud with the Top 50 most frequent words and a bar chart with the Top 20 most frequenct words. We were surprised to see that "love" was the top word in the PornHub Comments. This is likely the case because consumers are saying they "love" and aspect of the video, or especially love some part of the sex worker - the sex worker(s) themselves, a part of their body, etc.. 
 
-WORD FREQUENCY WORDCLOUD HERE
+<img src="data_pipeline/images/wordcloud.png" alt="WordCloud">
 
-WORD FREQUENCY CHART HERE
+<img src="data_pipeline/images/top_20.png" alt="Top 20 Image">
 
 #### Sentiment Analysis
 
