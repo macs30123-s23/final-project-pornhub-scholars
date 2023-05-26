@@ -147,7 +147,9 @@ Overall, both the sentiment and sexism classifier point to important social impl
 ### References
 - Cowan, G., & Dunn, K. F. (1994). What themes in pornography lead to perceptions of the degradation of women? Journal of Sex Research, 31(1), 11–21. https://doi.org/10.1080/00224499409551726
 - Guerta Pastori, B., Biliato Colmanetti, A., & de Azevedo Aguiar, C. (2022). Percepções de profissionais do sexo sobre o cuidado recebido no contexto assistencial à saúde. Journal of Human Growth and Development, 32(2), 275–282. https://doi.org/10.36311/jhgd.v32.10856
+- Ham, J., & Gerard, A. (2013). Strategic in/visibility: Does agency make sex workers invisible? Criminology & Criminal Justice, 14(3), 298–313. https://doi.org/10.1177/1748895813500154
 - Pihlaja, S. (2016). Expressing pleasure and avoiding engagement in online adult video comment sections. Journal of Language and Sexuality, 5(1), 94–112. https://doi.org/10.1075/jls.5.1.04pih
+- Verhoeven, M., & van Gestel, B. (2016). Between Visibility and Invisibility: Sex Workers and Informal Services in Amsterdam. Feminist Economics, 23(3), 110–133. https://doi.org/10.1080/13545701.2016.1195002
 - Wanyenze, Rhoda K., et al. ““When They Know That You Are a Sex Worker, You Will Be the Last Person to Be Treated”: Perceptions and Experiences of Female Sex Workers in Accessing HIV Services in Uganda.” BMC International Health and Human Rights, vol. 17, no. 1, 5 May 2017, bmcinthealthhumrights.biomedcentral.com/articles/10.1186/s12914-017-0119-1, https://doi.org/10.1186/s12914-017-0119-1.
 - Zvi, L. (2021). Police Perceptions of Sex-worker Rape Victims and Their Offenders: a Vignette Study. Journal of Interpersonal Violence, 37(15-16), 088626052110051. https://doi.org/10.1177/08862605211005140
 ‌
