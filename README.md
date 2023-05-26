@@ -84,8 +84,6 @@ In order to explore the data, we use Pyspark to visualize different aspects of t
 1. Our upvote exploration involved using Pysparks groupby and count function to show the amount of times a video got a certain number of upvotes. We also computed the mean number of upvotes.
 2. We additionally used Pyspark's map-reduce-by-key to find the most frequent words used in the PornHub Comments. This distributed the counting process across workers so our code was able to run more efficiently.
 
-![](./data_pipeline/images/top_20_and_wordcloud.png)
-
 Code for our Data Exploration can be found in the [01_data_exploration.ipynb](data_pipeline/01_data_exploration.ipynb) jupyter notebook.
 
 ## Sentiment Classification Model
@@ -112,9 +110,7 @@ Regarding the number of upvotes, we found that overall the average number of upv
 
 Our word frequency analysis results are below in both a WordCloud with the Top 50 most frequent words and a bar chart with the Top 20 most frequenct words. We were surprised to see that "love" was the top word in the PornHub Comments. This is likely the case because consumers are saying they "love" and aspect of the video, or especially love some part of the sex worker - the sex worker(s) themselves, a part of their body, etc.. 
 
-<img src="data_pipeline/images/wordcloud.png" alt="WordCloud">
-
-<img src="data_pipeline/images/top_20.png" alt="Top 20 Image">
+![](./data_pipeline/images/top_20_and_wordcloud.png)
 
 #### Sentiment Analysis
 
