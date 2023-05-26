@@ -107,6 +107,10 @@ Code for the sexism classification model can be found in [03_sexism.ipynb](data_
 
 Overall, we found quite a large number of comments were sexist. We additionally got quite positive sentiment analysis results, but there could be errors in our models. In particular, these language models were not trained specifically on text content that was sexually explicit in nature. Therefore, we believe that the sentiment analysis results and the sexism classification results might be skewed. Overall, we feel we are underestimating the amount of sexism in the comments and overestimating the positive sentiment in the comments.
 
+A subset of comments by classifier is available at the link [CONTENT WARNING](#content-warning)
+
+
+
 #### Data Exploration
 
 Regarding the number of upvotes, we found that overall the average number of upvotes was around 8 upvotes. For the number of people using Pornhub, this number was lower than we were expecting. However, considering the design of the platform and the fact that people are largely using Pornhub to watch videos and not interact with other consumers, it makes sense that the number of upvotes would be small.
@@ -174,3 +178,102 @@ Overall, because research in this space is limited, the analysis could be improv
 - Wanyenze, Rhoda K., et al. ““When They Know That You Are a Sex Worker, You Will Be the Last Person to Be Treated”: Perceptions and Experiences of Female Sex Workers in Accessing HIV Services in Uganda.” BMC International Health and Human Rights, vol. 17, no. 1, 5 May 2017, bmcinthealthhumrights.biomedcentral.com/articles/10.1186/s12914-017-0119-1, https://doi.org/10.1186/s12914-017-0119-1.
 - Zvi, L. (2021). Police Perceptions of Sex-worker Rape Victims and Their Offenders: a Vignette Study. Journal of Interpersonal Violence, 37(15-16), 088626052110051. https://doi.org/10.1177/08862605211005140
 ‌
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+
+# CONTENT WARNING
+### 10 random comments with positive sentiment score and categorized as sexist:
+|        | comment_text                                                                                                                             |
+|-------:|:-----------------------------------------------------------------------------------------------------------------------------------------|
+| 154163 | Damn, I would have loved to try and lick all that sweet cream oozing from your pussy and lick that clenching asshole free of your grool! |
+| 261216 | Sometimes you just have to put her hand behind her head to help her take all the cock 🙂                                                 |
+| 428049 | Cum down her throat. Big throatpie.                                                                                                      |
+| 506018 | Great video 😉                                                                                                                           |
+| 700660 | Because they are step bro and step sis                                                                                                   |
+| 442476 | Anyone here from dank memes gang?                                                                                                        |
+| 832234 | Mmmmhmmm id love to help!                                                                                                                |
+| 368780 | An accident waiting to happen. I was on the edge of my seat man                                                                          |
+| 497496 | Who is this guy? Love how excited he gets                                                                                                |
+| 112179 | My pussy is so wet :$                                                                                                                    |
+
+### 10 random comments with negative sentiment score and categorized as sexist:
+|        | comment_text                                                                                                                                                                                                                     |
+|-------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 693851 | beatiful sexy and hot 🙂 i like eat pussy and squirt 😉                                                                                                                                                                          |
+| 798063 | Lucky boy !                                                                                                                                                                                                                      |
+| 654424 | seeexy                                                                                                                                                                                                                           |
+| 483574 | She really doesn't. Seeing as you're the only commenter who thinks that I think it's safe to say you're just wrong. Also congratulations on being a prick. Even if you were right (you're not) it's just an unnecessary comment. |
+| 512000 | so sexy                                                                                                                                                                                                                          |
+| 638913 | That purple panties turn me on                                                                                                                                                                                                   |
+| 474671 | thanks                                                                                                                                                                                                                           |
+| 129477 | Waste of an ending. He should of pulled out and have her jack him all over her beautiful milky belly! WTF!                                                                                                                       |
+| 450341 | leave the converse on next time, they are super hot!                                                                                                                                                                             |
+| 641509 | Names???                                                                                                                                                                                                                         |
+
+### 10 random positive comments that are neutral:
+|        | comment_text                                                                                                                                                                                                                                                                               |
+|-------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 129905 | Those tits...                                                                                                                                                                                                                                                                              |
+| 601318 | Crazy fucking bitch                                                                                                                                                                                                                                                                        |
+|  42944 | The piss my boner...piss is so gross....                                                                                                                                                                                                                                                   |
+| 302740 | He's fucking hilarious!                                                                                                                                                                                                                                                                    |
+| 431634 | How does a couple apply or get on film?                                                                                                                                                                                                                                                    |
+| 497684 | Damn that's my dream girl leg twitches and all                                                                                                                                                                                                                                             |
+| 169139 | So fire ❤I’m from NJ let’s work 🤪                                                                                                                                                                                                                                                         |
+| 703488 | By far my favorite girl on PH! My wife wants to do this very thing and I'm ALL for it. I can't wait. LOVE LOVE watching these guys cum in you, especially one right after the other. Double vag is on the top of our list and would LOVE to see you do this as well. Please and thank you! |
+|  89736 | Go for it man. Love from Sweden. Per                                                                                                                                                                                                                                                       |
+| 208283 | Is it weird if I spent the last 420 years 360 no scoping my cum only to Sophie Dee                                                                                                                                                                                                         |
+
+### 10 random negative comments that are neutral:
+|        | comment_text                                                                                                                                                                                                       |
+|-------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 437981 | Wow you really suck.                                                                                                                                                                                               |
+|        | Not in a bad way btw.                                                                                                                                                                                              |
+|  97534 | My gosh this is amazing and adorable! Just look at that fluffy butt ♡                                                                                                                                              |
+| 310853 | Nice hot lesbian fuck. I'm soaking 💦                                                                                                                                                                              |
+|   1499 | fr ? damn                                                                                                                                                                                                          |
+| 116691 | Seeing this guys dick made me depressed.                                                                                                                                                                           |
+| 503660 | Exactly what i thought when he started flexing tbh                                                                                                                                                                 |
+| 578787 | Wow, nice ride. One of the best on PH 🙂 would like to see your tits bouncing, too ;-)                                                                                                                             |
+|  92049 | I am absolutely in love with this woman and have been watching her creampie videos for a while now. Nothing in life do I wish for more than a woman who loves multiple hung men erupting balls deep into her pussy |
+| 656031 | You got daddy issues my friend?                                                                                                                                                                                    |
+| 196096 | yeah, what happened?                                                                                                                                                                                               |

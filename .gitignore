@@ -161,5 +161,3 @@ cython_debug/
 
 # Project specific
 *.zip
-*.parquet
-tables/
