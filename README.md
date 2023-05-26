@@ -85,7 +85,9 @@ In order to explore the data, we use Pyspark to visualize different aspects of t
 1. Our upvote exploration involved using Pysparks groupby and count function to show the amount of times a video got a certain number of upvotes. We also computed the mean number of upvotes.
 2. We additionally used Pyspark's map-reduce-by-key to find the most frequent words used in the PornHub Comments. This distributed the counting process across workers so our code was able to run more efficiently.
 
-Code for our Data Exploration can be found in the [01_data_exploration.ipynb](data_pipeline/01_data_exploration.ipynb) jupyter notebook.
+We also conduct exploratory analysis usin pyspark on the video table to analyze the words present in video titles, as well as see the proportions of different types of creators in our dataset (models, pornstars, channels).
+
+Code for our Data Exploration can be found in the [01_data_exploration.ipynb](data_pipeline/01_data_exploration.ipynb) and [01a_data_exploration_videos_creators.ipynb](data_pipeline/01a_data_exploration_videos_creators.ipynb) jupyter notebooks.
 
 ## Sentiment Classification Model
 
@@ -109,9 +111,18 @@ Overall, we found quite a large number of comments were sexist. We additionally 
 
 Regarding the number of upvotes, we found that overall the average number of upvotes was around 8 upvotes. For the number of people using Pornhub, this number was lower than we were expecting. However, considering the design of the platform and the fact that people are largely using Pornhub to watch videos and not interact with other consumers, it makes sense that the number of upvotes would be small.
 
-Our word frequency analysis results are below in both a WordCloud with the Top 50 most frequent words and a bar chart with the Top 20 most frequenct words. We were surprised to see that "love" was the top word in the PornHub Comments. This is likely the case because consumers are saying they "love" and aspect of the video, or especially love some part of the sex worker - the sex worker(s) themselves, a part of their body, etc.. 
+Our word frequency analysis results are below in both a WordCloud with the Top 50 most frequent words and a bar chart with the Top 20 most frequenct words. We were surprised to see that "love" was the top word in the PornHub Comments. This is likely the case because consumers are saying they "love" an aspect of the video, or especially love some part of the sex worker - the sex worker(s) themselves, a part of their body, etc.. 
 
 ![](./data_pipeline/images/top_20_and_wordcloud.png)
+
+In addition, through counting the number of videos posted by different types of creators, we see that the vast majority of videos in our dataset concerns channels ($109,182$ videos), while independent models are a minority ($13,024$ videos). This could mean that porn as an "industry" mihgt be driving online sexual content.
+
+![](./data_pipeline/images/creator_type_counts.png)
+
+Furthermore, we produced a word freqeuncy plot for the video titles for the top 20 most frequent words in both a bar chart and wordcloud format. The content analysis of video titles, reveals some alarming results as for example the word "teen" is found to be the 10th most common word in video titles.
+
+![](./data_pipeline/images/word_freq_and_cloud_video_titles.png)
+
 
 #### Sentiment Analysis
 
