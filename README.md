@@ -4,7 +4,7 @@
 ### Winter 2023
 
 Who worked on what: 
-- Screper---Loizos Bitsikokos, Joseph Helbing 
+- Scraper---Loizos Bitsikokos, Joseph Helbing 
 - AWS Pipeline--- Joseph Helbing, Kaya Borlase
 - Pyspark Analysis--- Loizos Bitsikokos, Kaya Borlase
 
