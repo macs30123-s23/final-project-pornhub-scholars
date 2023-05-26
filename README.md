@@ -140,9 +140,17 @@ Overall, both the sentiment and sexism classifier point to important social impl
 
 ### Future Implications and Limitations
 
-- homophobia model?
-- more comments
-- breaking down by category?
+As previously stated, our analysis allowed us to gain an understanding of the nature of comments on the Pornhub website. That being said, there are ways that our analysis could be improved.
+
+First, while we classified the comments on sexism and racism (with a focus on sexism), it is likely that the comments also have other forms of discrimination present, such as homophobia. With that in mind, it would be important in future analyses to include some sort of homophobia, or other, classifiers to account for more harm perpetuation in the online discourse.
+
+Second, we do not break down the PornHub videos by category of porn or by who is viewing the videos. In this way, because we are randomly selecting videos, we might be noticing trends that are actually driven by just a subset of the comments on PornHub videos. In the future, a scraper which somehow finds the tags on that video might be helpful for a more complete analysis.
+
+Third, it is possible, as with any other online platform, that some of the comments that we scraped were left by bots and not by people. Bots are used to drive video engagement, because they can create traffic (see this [forum]((https://hackforums.net/showthread.php?tid=5990040)) where someone is selling PornHub Bots to drive traffic to videos. It seems like most of our comments have valid text data, so we believe this is not skewing our results much.
+
+Finally, 800,000 comments just begins to scratch the surface of the complete space of Pornhub comments. Future analyses should attempt to scrape many more comments to see whether our subset was fully representative of the whole space.
+
+Overall, because research in this space is limited, the analysis could be improved and built upon in the future, as the field studying online discourse around sex work expands and develops.
 
 ### References
 - Cowan, G., & Dunn, K. F. (1994). What themes in pornography lead to perceptions of the degradation of women? Journal of Sex Research, 31(1), 11–21. https://doi.org/10.1080/00224499409551726
