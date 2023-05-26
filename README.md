@@ -70,8 +70,9 @@ $12,000$ lambda functions pushed to the SQS Queue with a maximum concurrent lamb
 When scraping is finished, the full database schema can be downloaded as set of 3 `.parquet` files via
 ```shell
 python create_database.py --download
-```shell
+```
 and the RDB can be closed via
+
 ```shell
 python create_database.py --close
 ```
